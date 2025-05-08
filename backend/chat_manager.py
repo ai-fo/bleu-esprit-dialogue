@@ -55,13 +55,13 @@ class Conversation:
 class ChatManager:
     """Gestionnaire de conversations avec RAG intégré."""
     
-    def __init__(self, mode: str = "api", seuil_similarite: float = 0.15):
+    def __init__(self, mode: str = "api", seuil_similarite: float = 0.35):
         """
         Initialise le gestionnaire de chat.
         
         Args:
             mode: Mode d'appel du modèle ("api" ou "local")
-            seuil_similarite: Seuil de similarité pour la sélection des documents
+            seuil_similarite: Seuil de similarité pour la sélection des documents (0.35 par défaut)
         """
         self.conversations: Dict[str, Conversation] = {}
         self.mode = mode
@@ -149,11 +149,16 @@ Soyez précis, clair et concis dans vos réponses.""")
         # Récupérer les chunks pertinents
         relevant_chunks = self.rag.search(question, top_k=5)
         
-        # Vérifier si au moins un chunk dépasse le seuil de similarité
+        # Log pour debugging
+        print(f"\nDébogage de similarité pour la question: {question}")
         for chunk, similarite in relevant_chunks:
+            source = Path(chunk.source_file).name if hasattr(chunk, 'source_file') else "inconnu"
+            print(f"Document: {source} | Similarité: {similarite:.3f} | Seuil requis: {self.seuil_similarite}")
             if similarite > self.seuil_similarite:
+                print(f"✓ Document retenu: {source}")
                 return True, relevant_chunks
-        
+            
+        print("✗ Aucun document n'a dépassé le seuil de similarité")
         return False, relevant_chunks
     
     def generer_reponse_avec_contexte(self, question: str, historique_formatte: str) -> str:
@@ -346,7 +351,7 @@ Soyez précis, clair et concis dans vos réponses.""")
 
 # Exemple d'utilisation direct du chat manager
 if __name__ == "__main__":
-    chat_manager = ChatManager(mode="api", seuil_similarite=0.15)
+    chat_manager = ChatManager(mode="api", seuil_similarite=0.35)
     session_id = "test_console"
     
     print("Système de chat initialisé. Tapez 'q' pour quitter.")
