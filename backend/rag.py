@@ -164,13 +164,29 @@ def chat_endpoint(req: ChatRequest):
     # Start with system message
     messages = [{"role": "system", "content": system_msg.format(context=context)}]
     
-    # Add conversation history (last 5 messages)
-    messages.extend(CONVERSATION_CACHE[req.session_id][-5:])
+    # Construire proprement l'historique alternant user/assistant
+    history = []
     
-    # Add current question ONLY if not already in history
-    # Check if the history is empty or the last message is not the user's
-    if not CONVERSATION_CACHE[req.session_id] or CONVERSATION_CACHE[req.session_id][-1]["role"] != "user":
-        messages.append({"role": "user", "content": req.question})
+    # Ne prendre que les 10 derniers messages maximum pour avoir 5 échanges
+    recent_history = CONVERSATION_CACHE[req.session_id][-10:]
+    
+    # S'assurer que l'historique commence par un message utilisateur
+    if recent_history and recent_history[0]["role"] == "assistant":
+        recent_history = recent_history[1:]
+    
+    # Ajouter les messages en s'assurant qu'ils alternent correctement
+    for i in range(0, len(recent_history), 2):
+        if i+1 < len(recent_history):
+            # Ne prendre que les paires complètes user/assistant
+            if recent_history[i]["role"] == "user" and recent_history[i+1]["role"] == "assistant":
+                history.append(recent_history[i])
+                history.append(recent_history[i+1])
+    
+    # Ajouter l'historique correctement construit
+    messages.extend(history)
+    
+    # Ajouter la question actuelle
+    messages.append({"role": "user", "content": req.question})
     
     # Get LLM completion
     resp = get_chat_completion(req.model, messages, max_tokens=req.max_tokens)
