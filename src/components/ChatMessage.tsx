@@ -1,7 +1,70 @@
 
-// The original ChatMessage.tsx file is read-only, so we can't modify it directly.
-// Instead, I'll create a new component to display source files.
+import React, { useState, useEffect } from 'react';
 
+interface ChatMessageProps {
+  content: string;
+  isUser?: boolean;
+  isLoading?: boolean;
+  onNewChunkDisplayed?: () => void;
+}
+
+const ChatMessage: React.FC<ChatMessageProps> = ({ 
+  content, 
+  isUser = false, 
+  isLoading = false,
+  onNewChunkDisplayed 
+}) => {
+  const [displayText, setDisplayText] = useState('');
+  
+  // Effect to handle typing animation for bot messages
+  useEffect(() => {
+    if (isUser || !content) {
+      setDisplayText(content);
+      return;
+    }
+
+    let index = 0;
+    const typingEffect = setInterval(() => {
+      if (index <= content.length) {
+        setDisplayText(content.substring(0, index));
+        index++;
+        
+        // Call onNewChunkDisplayed callback if provided
+        if (onNewChunkDisplayed) {
+          onNewChunkDisplayed();
+        }
+      } else {
+        clearInterval(typingEffect);
+      }
+    }, 10); // Typing speed can be adjusted
+
+    return () => clearInterval(typingEffect);
+  }, [content, isUser, onNewChunkDisplayed]);
+
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-2`}>
+      <div 
+        className={`rounded-lg px-4 py-2 max-w-[85%] ${
+          isUser 
+            ? 'bg-blue-600 text-white rounded-tr-none' 
+            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+        }`}
+      >
+        {isLoading ? (
+          <div className="flex items-center space-x-1">
+            <div className="bg-gray-500 rounded-full h-2 w-2 animate-bounce"></div>
+            <div className="bg-gray-500 rounded-full h-2 w-2 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="bg-gray-500 rounded-full h-2 w-2 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+        ) : (
+          <div className="whitespace-pre-wrap">{displayText}</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Export the RagSources component that was originally in ChatMessage.tsx
 export interface RagSourceProps {
   files: string[];
 }
@@ -26,3 +89,5 @@ export const RagSources: React.FC<RagSourceProps> = ({ files }) => {
     </div>
   );
 };
+
+export default ChatMessage;

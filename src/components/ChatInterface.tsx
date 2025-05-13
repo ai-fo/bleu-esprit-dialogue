@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ChatMessage, { ChatMessageProps } from './ChatMessage';
+import ChatMessage, { RagSources } from './ChatMessage'; // Import component from ChatMessage.tsx without default import
 import ChatInput from './ChatInput';
-import RagSources from './RagSources'; // Import pour les sources RAG
+import RagSourcesComponent from './RagSources'; // Renamed to avoid conflict
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { sendMessage } from '@/lib/api';
 import { useToast } from "@/components/ui/use-toast";
@@ -9,8 +9,17 @@ import { TrendingUp, Headset } from 'lucide-react';
 import IncidentStatus, { waitTimeInfo, appIncidents } from './IncidentStatus';
 import { Card } from '@/components/ui/card';
 
+// Define the message interface correctly
+interface ChatMessageProps {
+  content: string;
+  isUser?: boolean;
+  isLoading?: boolean;
+  onNewChunkDisplayed?: () => void;
+}
+
 interface ExtendedChatMessageProps extends ChatMessageProps {
-  files_used?: string[]; // Ajout des fichiers utilisés
+  isUser?: boolean;
+  files_used?: string[]; // Files used in RAG
 }
 
 interface ChatInterfaceProps {
@@ -44,19 +53,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  // Fonction pour capturer la référence de l'input depuis le composant ChatInput
+  // Function to capture the input reference from ChatInput component
   const setInputRef = (ref: HTMLInputElement | null) => {
     inputRef.current = ref;
   };
 
-  // Fonction pour refocuser l'input
+  // Function to focus the input
   const focusInput = () => {
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
   };
 
-  // Fonction pour scroller automatiquement vers le bas
+  // Function to automatically scroll to bottom
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({
@@ -65,12 +74,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  // Fonction pour scroller automatiquement vers le bas
+  // Function to handle sending messages
   const handleSendMessage = async (content: string) => {
     setShowTrendingQuestions(false);
     const userMessage: ExtendedChatMessageProps = {
-      role: 'user',
-      content
+      content,
+      isUser: true
     };
     setMessages(prev => [...prev, userMessage]);
     if (messages.length === 0 && onFirstMessage) {
@@ -78,29 +87,29 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
     setLoading(true);
     try {
-      // Scroll après l'ajout du message utilisateur
+      // Scroll after adding user message
       setTimeout(scrollToBottom, 100);
       const response = await sendMessage(content);
 
-      // Si c'est le premier message, ajouter la réponse humanisée
+      // If there's a humanized response, add it
       if (response.humanized) {
         const humanizedMessage: ExtendedChatMessageProps = {
-          role: 'assistant',
-          content: response.humanized
+          content: response.humanized,
+          isUser: false
         };
         setMessages(prev => [...prev, humanizedMessage]);
-        // Scroll après l'ajout du message humanisé
+        // Scroll after adding humanized message
         setTimeout(scrollToBottom, 100);
       }
 
-      // Ajouter la réponse réelle du bot avec les sources RAG
+      // Add the bot's actual response with RAG sources
       const botResponse: ExtendedChatMessageProps = {
-        role: 'assistant',
         content: response.answer,
-        files_used: response.files_used // Ajout des fichiers utilisés par RAG
+        isUser: false,
+        files_used: response.files_used
       };
       setMessages(prev => [...prev, botResponse]);
-      // Scroll après l'ajout de la réponse du bot
+      // Scroll after adding bot response
       setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error("Erreur lors de l'envoi du message:", error);
@@ -111,7 +120,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       });
     } finally {
       setLoading(false);
-      // Refocuser l'input après réception de la réponse
+      // Refocus input after receiving response
       focusInput();
     }
   };
@@ -148,9 +157,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <div className="flex flex-col">
             {messages.map((message, index) => (
               <div key={index} className="mb-4">
-                <ChatMessage {...message} onNewChunkDisplayed={scrollToBottom} />
-                {message.role === 'assistant' && message.files_used && (
-                  <RagSources files={message.files_used} />
+                <ChatMessage 
+                  content={message.content} 
+                  isUser={message.isUser}
+                  isLoading={loading && index === messages.length - 1}
+                  onNewChunkDisplayed={scrollToBottom}
+                />
+                {!message.isUser && message.files_used && (
+                  <RagSourcesComponent files={message.files_used} />
                 )}
               </div>
             ))}
