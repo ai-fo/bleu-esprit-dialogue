@@ -1,12 +1,11 @@
 
-// The original ChatMessage.tsx file is read-only, so we can't modify it directly.
-// Instead, I'll create a new component to display source files.
+import React from 'react';
 
 export interface RagSourceProps {
   files: string[];
 }
 
-export const RagSources: React.FC<RagSourceProps> = ({ files }) => {
+const RagSources: React.FC<RagSourceProps> = ({ files }) => {
   if (!files || files.length === 0) return null;
   
   return (
@@ -26,3 +25,5 @@ export const RagSources: React.FC<RagSourceProps> = ({ files }) => {
     </div>
   );
 };
+
+export default RagSources;

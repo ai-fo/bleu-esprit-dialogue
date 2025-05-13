@@ -1,12 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ChatMessage, { ChatMessageProps } from './ChatMessage';
 import ChatInput from './ChatInput';
+import RagSources from './RagSources'; // Import pour les sources RAG
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { sendMessage } from '@/lib/api';
 import { useToast } from "@/components/ui/use-toast";
 import { TrendingUp, Headset } from 'lucide-react';
 import IncidentStatus, { waitTimeInfo, appIncidents } from './IncidentStatus';
 import { Card } from '@/components/ui/card';
+
+interface ExtendedChatMessageProps extends ChatMessageProps {
+  files_used?: string[]; // Ajout des fichiers utilisés
+}
 
 interface ChatInterfaceProps {
   chatbotName?: string;
@@ -22,7 +27,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onFirstMessage,
   trendingQuestions = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"]
 }) => {
-  const [messages, setMessages] = useState<ChatMessageProps[]>([]);
+  const [messages, setMessages] = useState<ExtendedChatMessageProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showTrendingQuestions, setShowTrendingQuestions] = useState(false);
@@ -63,7 +68,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   // Fonction pour scroller automatiquement vers le bas
   const handleSendMessage = async (content: string) => {
     setShowTrendingQuestions(false);
-    const userMessage: ChatMessageProps = {
+    const userMessage: ExtendedChatMessageProps = {
       role: 'user',
       content
     };
@@ -79,7 +84,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
       // Si c'est le premier message, ajouter la réponse humanisée
       if (response.humanized) {
-        const humanizedMessage: ChatMessageProps = {
+        const humanizedMessage: ExtendedChatMessageProps = {
           role: 'assistant',
           content: response.humanized
         };
@@ -88,10 +93,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         setTimeout(scrollToBottom, 100);
       }
 
-      // Ajouter la réponse réelle du bot
-      const botResponse: ChatMessageProps = {
+      // Ajouter la réponse réelle du bot avec les sources RAG
+      const botResponse: ExtendedChatMessageProps = {
         role: 'assistant',
-        content: response.answer
+        content: response.answer,
+        files_used: response.files_used // Ajout des fichiers utilisés par RAG
       };
       setMessages(prev => [...prev, botResponse]);
       // Scroll après l'ajout de la réponse du bot
@@ -140,7 +146,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return <div className="w-full flex flex-col h-[calc(100vh-10rem)]">
       {!isInitialState && <ScrollArea ref={scrollAreaRef} className="flex-1 p-5 space-y-5 overflow-hidden scrollbar-hidden">
           <div className="flex flex-col">
-            {messages.map((message, index) => <ChatMessage key={index} {...message} onNewChunkDisplayed={scrollToBottom} />)}
+            {messages.map((message, index) => (
+              <div key={index} className="mb-4">
+                <ChatMessage {...message} onNewChunkDisplayed={scrollToBottom} />
+                {message.role === 'assistant' && message.files_used && (
+                  <RagSources files={message.files_used} />
+                )}
+              </div>
+            ))}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>}
