@@ -77,18 +77,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setTimeout(scrollToBottom, 100);
       const response = await sendMessage(content);
 
-      // Si c'est le premier message, ajouter la réponse humanisée
-      if (response.humanized) {
-        const humanizedMessage: ChatMessageProps = {
-          role: 'assistant',
-          content: response.humanized
-        };
-        setMessages(prev => [...prev, humanizedMessage]);
-        // Scroll après l'ajout du message humanisé
-        setTimeout(scrollToBottom, 100);
-      }
-
-      // Ajouter la réponse réelle du bot
+      // Ajouter la réponse du bot
       const botResponse: ChatMessageProps = {
         role: 'assistant',
         content: response.answer
@@ -100,7 +89,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       console.error("Erreur lors de l'envoi du message:", error);
       toast({
         title: "Erreur de connexion",
-        description: "Impossible de se connecter au serveur. Vérifiez que le backend Python est en cours d'exécution.",
+        description: error instanceof Error ? error.message : "Impossible de se connecter au serveur. Vérifiez que le backend Python est en cours d'exécution.",
         variant: "destructive"
       });
     } finally {

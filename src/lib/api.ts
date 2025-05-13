@@ -15,14 +15,8 @@ const DEFAULT_KNOWLEDGE_BASE = 'transcripts';  // Dossier des transcriptions com
 const DEFAULT_MODEL = 'Mistral-Large-Instruct-2407-AWQ';
 
 export interface ChatResponse {
-  humanized: string | null;
   answer: string;
-  sources?: Array<{
-    fichier: string;
-    pertinence: number;
-    est_image?: boolean;
-  }>;
-  peut_repondre?: boolean;
+  files_used: string[];
 }
 
 /**
@@ -33,7 +27,7 @@ export const sendMessage = async (message: string): Promise<ChatResponse> => {
   try {
     const payload = {
       session_id: SESSION_ID,
-      question: message,  // Renommé de 'message' à 'question'
+      question: message,
       knowledge_base: DEFAULT_KNOWLEDGE_BASE,
       model: DEFAULT_MODEL
     };
@@ -51,19 +45,27 @@ export const sendMessage = async (message: string): Promise<ChatResponse> => {
       body: JSON.stringify(payload),
     });
 
+    const responseText = await response.text();
+    console.log('Réponse brute du serveur:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
       console.error('Réponse serveur non-ok:', {
         status: response.status,
         statusText: response.statusText,
-        errorBody: errorText,
+        body: responseText,
       });
-      throw new Error(`Erreur réseau: ${response.status} - ${errorText}`);
+      throw new Error(`Erreur serveur: ${response.status} - ${responseText}`);
     }
 
-    const data = await response.json();
-    console.log('Réponse serveur:', data);
-    return data;
+    // Essayer de parser la réponse JSON
+    try {
+      const data = JSON.parse(responseText);
+      console.log('Réponse parsée:', data);
+      return data;
+    } catch (e) {
+      console.error('Erreur de parsing JSON:', e);
+      throw new Error(`Erreur de format de réponse: ${responseText}`);
+    }
   } catch (error) {
     console.error('Erreur détaillée lors de l\'envoi du message:', error);
     throw error;
