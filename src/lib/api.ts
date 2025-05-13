@@ -10,6 +10,10 @@ if (!SESSION_ID) {
   localStorage.setItem('chat_session_id', SESSION_ID);
 }
 
+// Configuration par défaut alignée avec backend/config.py
+const DEFAULT_KNOWLEDGE_BASE = 'transcripts';  // Dossier des transcriptions complètes
+const DEFAULT_MODEL = 'Mistral-Large-Instruct-2407-AWQ';
+
 export interface ChatResponse {
   humanized: string | null;
   answer: string;
@@ -27,24 +31,41 @@ export interface ChatResponse {
  */
 export const sendMessage = async (message: string): Promise<ChatResponse> => {
   try {
+    const payload = {
+      session_id: SESSION_ID,
+      question: message,  // Renommé de 'message' à 'question'
+      knowledge_base: DEFAULT_KNOWLEDGE_BASE,
+      model: DEFAULT_MODEL
+    };
+    
+    console.log('Envoi de la requête au serveur:', {
+      url: `${API_URL}/chat`,
+      payload,
+    });
+
     const response = await fetch(`${API_URL}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        session_id: SESSION_ID,
-        message,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      throw new Error(`Erreur réseau: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Réponse serveur non-ok:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorBody: errorText,
+      });
+      throw new Error(`Erreur réseau: ${response.status} - ${errorText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('Réponse serveur:', data);
+    return data;
   } catch (error) {
-    console.error('Erreur lors de l\'envoi du message:', error);
+    console.error('Erreur détaillée lors de l\'envoi du message:', error);
     throw error;
   }
 };
