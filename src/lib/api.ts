@@ -3,12 +3,9 @@ import { v4 as uuidv4 } from 'uuid';
 // URL de base de l'API
 const API_URL = 'http://localhost:8091';
 
-// Nous utilisons un ID de session unique pour suivre la conversation
-let SESSION_ID = localStorage.getItem('chat_session_id');
-if (!SESSION_ID) {
-  SESSION_ID = uuidv4();
-  localStorage.setItem('chat_session_id', SESSION_ID);
-}
+// Génération d'un nouvel ID de session à chaque chargement de page
+const SESSION_ID = uuidv4();
+console.log('Nouvelle session créée:', SESSION_ID);
 
 // Configuration par défaut alignée avec backend/config.py
 const DEFAULT_KNOWLEDGE_BASE = 'transcripts';  // Dossier des transcriptions complètes
