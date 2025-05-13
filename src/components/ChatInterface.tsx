@@ -1,26 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ChatMessage, { RagSources } from './ChatMessage'; // Import component from ChatMessage.tsx without default import
+import ChatMessage, { ChatMessageProps } from './ChatMessage';
 import ChatInput from './ChatInput';
-import RagSourcesComponent from './RagSources'; // Renamed to avoid conflict
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { sendMessage } from '@/lib/api';
 import { useToast } from "@/components/ui/use-toast";
 import { TrendingUp, Headset } from 'lucide-react';
 import IncidentStatus, { waitTimeInfo, appIncidents } from './IncidentStatus';
 import { Card } from '@/components/ui/card';
-
-// Define the message interface correctly
-interface ChatMessageProps {
-  content: string;
-  isUser?: boolean;
-  isLoading?: boolean;
-  onNewChunkDisplayed?: () => void;
-}
-
-interface ExtendedChatMessageProps extends ChatMessageProps {
-  isUser?: boolean;
-  files_used?: string[]; // Files used in RAG
-}
 
 interface ChatInterfaceProps {
   chatbotName?: string;
@@ -36,7 +22,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onFirstMessage,
   trendingQuestions = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"]
 }) => {
-  const [messages, setMessages] = useState<ExtendedChatMessageProps[]>([]);
+  const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showTrendingQuestions, setShowTrendingQuestions] = useState(false);
@@ -53,19 +39,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  // Function to capture the input reference from ChatInput component
+  // Fonction pour capturer la référence de l'input depuis le composant ChatInput
   const setInputRef = (ref: HTMLInputElement | null) => {
     inputRef.current = ref;
   };
 
-  // Function to focus the input
+  // Fonction pour refocuser l'input
   const focusInput = () => {
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
   };
 
-  // Function to automatically scroll to bottom
+  // Fonction pour scroller automatiquement vers le bas
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({
@@ -74,12 +60,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  // Function to handle sending messages
+  // Fonction pour scroller automatiquement vers le bas
   const handleSendMessage = async (content: string) => {
     setShowTrendingQuestions(false);
-    const userMessage: ExtendedChatMessageProps = {
-      content,
-      isUser: true
+    const userMessage: ChatMessageProps = {
+      role: 'user',
+      content
     };
     setMessages(prev => [...prev, userMessage]);
     if (messages.length === 0 && onFirstMessage) {
@@ -87,29 +73,28 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
     setLoading(true);
     try {
-      // Scroll after adding user message
+      // Scroll après l'ajout du message utilisateur
       setTimeout(scrollToBottom, 100);
       const response = await sendMessage(content);
 
-      // If there's a humanized response, add it
+      // Si c'est le premier message, ajouter la réponse humanisée
       if (response.humanized) {
-        const humanizedMessage: ExtendedChatMessageProps = {
-          content: response.humanized,
-          isUser: false
+        const humanizedMessage: ChatMessageProps = {
+          role: 'assistant',
+          content: response.humanized
         };
         setMessages(prev => [...prev, humanizedMessage]);
-        // Scroll after adding humanized message
+        // Scroll après l'ajout du message humanisé
         setTimeout(scrollToBottom, 100);
       }
 
-      // Add the bot's actual response with RAG sources
-      const botResponse: ExtendedChatMessageProps = {
-        content: response.answer,
-        isUser: false,
-        files_used: response.files_used
+      // Ajouter la réponse réelle du bot
+      const botResponse: ChatMessageProps = {
+        role: 'assistant',
+        content: response.answer
       };
       setMessages(prev => [...prev, botResponse]);
-      // Scroll after adding bot response
+      // Scroll après l'ajout de la réponse du bot
       setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error("Erreur lors de l'envoi du message:", error);
@@ -120,7 +105,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       });
     } finally {
       setLoading(false);
-      // Refocus input after receiving response
+      // Refocuser l'input après réception de la réponse
       focusInput();
     }
   };
@@ -155,19 +140,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return <div className="w-full flex flex-col h-[calc(100vh-10rem)]">
       {!isInitialState && <ScrollArea ref={scrollAreaRef} className="flex-1 p-5 space-y-5 overflow-hidden scrollbar-hidden">
           <div className="flex flex-col">
-            {messages.map((message, index) => (
-              <div key={index} className="mb-4">
-                <ChatMessage 
-                  content={message.content} 
-                  isUser={message.isUser}
-                  isLoading={loading && index === messages.length - 1}
-                  onNewChunkDisplayed={scrollToBottom}
-                />
-                {!message.isUser && message.files_used && (
-                  <RagSourcesComponent files={message.files_used} />
-                )}
-              </div>
-            ))}
+            {messages.map((message, index) => <ChatMessage key={index} {...message} onNewChunkDisplayed={scrollToBottom} />)}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>}

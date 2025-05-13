@@ -1,0 +1,75 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Your rule content
+
+
+Si je travaille avec l'api : 
+import os
+from mistralai import Mistral
+
+api_key = os.environ["MISTRAL_API_KEY"]
+model = "mistral-small-latest"
+
+client = Mistral(api_key=api_key)
+
+chat_response = client.chat.complete(
+    model = model,
+    messages = [
+        {
+            "role": "user",
+            "content": "x",
+        },
+    ]
+)
+
+print(chat_response.choices[0].message.content)
+
+
+---------------------------------------------------------------
+
+Si je travail en local : 
+
+Quand je veux appeler  le modele mistral en local, j'utilise le payload suivant :
+        payload = {
+            "model": "Mistral-Large-Instruct-2407-AWQ",
+            "messages": [
+                {"role": "system", "content": "x"},
+                {"role": "user", "content": "x"}
+            ],
+            "temperature": 0.2,
+            "max_tokens": 50
+        }
+ 
+        # Envoi de la requête
+        response = requests.post(url, json=payload)
+        answer = response.json()["choices"][0]["message"]["content"].strip().lower()
+
+
+---------------------------------------------------------------------------------
+Pour appeler Pixtral : 
+
+data = {
+    "model": model_path,
+    "messages": [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Voici image:"
+                }
+            ] + images_base64
+        }
+    ]
+}
+
+headers = {"Content-Type": "application/json"}
+response = requests.post(vllm_url, headers=headers, json=data)
+
+- You can @ files here
+- You can use markdown but dont have to
+
+
