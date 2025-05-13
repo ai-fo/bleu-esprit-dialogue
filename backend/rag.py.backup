@@ -167,10 +167,8 @@ def chat_endpoint(req: ChatRequest):
     # Add conversation history (last 5 messages)
     messages.extend(CONVERSATION_CACHE[req.session_id][-5:])
     
-    # Add current question ONLY if not already in history
-    # Check if the history is empty or the last message is not the user's
-    if not CONVERSATION_CACHE[req.session_id] or CONVERSATION_CACHE[req.session_id][-1]["role"] != "user":
-        messages.append({"role": "user", "content": req.question})
+    # Add current question
+    messages.append({"role": "user", "content": req.question})
     
     # Get LLM completion
     resp = get_chat_completion(req.model, messages, max_tokens=req.max_tokens)
