@@ -12,3 +12,4 @@ __pycache__/
 temp_images/
 .cursor/
 *.pyc
+backend/__pycache__/
