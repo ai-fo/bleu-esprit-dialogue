@@ -77,16 +77,27 @@ export const sendMessage = async (message: string): Promise<ChatResponse> => {
  */
 export const clearConversation = async (): Promise<void> => {
   try {
-    await fetch(`${API_URL}/clear_history`, {
+    console.log('Envoi de la requête pour effacer l\'historique:', {
+      url: `${API_URL}/clear_history`,
+      payload: { session_id: SESSION_ID },
+    });
+
+    const response = await fetch(`${API_URL}/clear_history`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         session_id: SESSION_ID,
-        message: '', // Message vide puisqu'on veut juste effacer l'historique
       }),
     });
+
+    const responseText = await response.text();
+    console.log('Réponse de la réinitialisation:', responseText);
+
+    if (!response.ok) {
+      throw new Error(`Erreur serveur: ${response.status} - ${responseText}`);
+    }
   } catch (error) {
     console.error('Erreur lors de la réinitialisation de la conversation:', error);
     throw error;

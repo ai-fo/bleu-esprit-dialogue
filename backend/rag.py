@@ -109,6 +109,9 @@ class ChatResponse(BaseModel):
     answer: str
     files_used: List[str]
 
+class ClearHistoryRequest(BaseModel):
+    session_id: str
+
 # Initialize FastAPI app
 app = FastAPI()
 
@@ -176,6 +179,15 @@ def chat_endpoint(req: ChatRequest):
     ])
     
     return ChatResponse(answer=answer, files_used=files)
+
+@app.post("/clear_history")
+def clear_history_endpoint(req: ClearHistoryRequest):
+    """Clear conversation history for a given session."""
+    if req.session_id in CONVERSATION_CACHE:
+        logger.info(f"Clearing conversation history for session {req.session_id}")
+        CONVERSATION_CACHE[req.session_id] = []
+        return {"success": True, "message": "Conversation history cleared"}
+    return {"success": False, "message": "Session not found"}
 
 if __name__ == "__main__":
     import uvicorn
