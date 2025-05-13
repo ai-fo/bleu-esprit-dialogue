@@ -1,8 +1,7 @@
-
 import { v4 as uuidv4 } from 'uuid';
 
 // URL de base de l'API
-const API_URL = 'http://localhost:8090';
+const API_URL = 'http://localhost:8091';
 
 // Nous utilisons un ID de session unique pour suivre la conversation
 let SESSION_ID = localStorage.getItem('chat_session_id');
