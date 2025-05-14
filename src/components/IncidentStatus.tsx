@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -103,21 +104,27 @@ export const waitTimeInfo = {
   callers: 5,
   status: 'normal' // 'low', 'normal', 'high'
 };
+
 interface IncidentStatusProps {
   showTitle?: boolean;
   compact?: boolean;
   showWaitTime?: boolean;
   asDropdown?: boolean;
+  incidents?: AppIncident[];
+  onIncidentStatusChange?: (incidents: AppIncident[]) => void;
 }
+
 const IncidentStatus: React.FC<IncidentStatusProps> = ({
   showTitle = true,
   compact = false,
   showWaitTime = false,
-  asDropdown = false
+  asDropdown = false,
+  incidents = appIncidents,
+  onIncidentStatusChange
 }) => {
   // If compact mode, only show incidents
-  const incidents = compact ? appIncidents.filter(app => app.status === 'incident') : appIncidents;
-  const incidentCount = appIncidents.filter(app => app.status === 'incident').length;
+  const displayIncidents = compact ? incidents.filter(app => app.status === 'incident') : incidents;
+  const incidentCount = incidents.filter(app => app.status === 'incident').length;
 
   // Dropdown-only version
   if (asDropdown) {
@@ -129,7 +136,7 @@ const IncidentStatus: React.FC<IncidentStatusProps> = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56 bg-white">
-          {incidents.map(app => <DropdownMenuItem key={app.id} className="flex items-center gap-2 px-3 py-2">
+          {displayIncidents.map(app => <DropdownMenuItem key={app.id} className="flex items-center gap-2 px-3 py-2">
               <div className={`p-1 rounded-full ${app.status === 'incident' ? 'bg-red-100' : 'bg-green-100'}`}>
                 <div className={app.status === 'incident' ? 'text-red-500' : 'text-green-500'}>
                   {app.icon}
@@ -153,8 +160,31 @@ const IncidentStatus: React.FC<IncidentStatusProps> = ({
       {showTitle}
       
       <ScrollArea className={compact ? "h-[220px]" : "max-h-[calc(100vh-300px)]"}>
-        
+        {/* Display incidents content here */}
+        <CardContent className="p-4">
+          {displayIncidents.map(app => (
+            <div key={app.id} className="flex items-center gap-2 p-2 border-b last:border-0">
+              <div className={`p-1 rounded-full ${app.status === 'incident' ? 'bg-red-100' : 'bg-green-100'}`}>
+                <div className={app.status === 'incident' ? 'text-red-500' : 'text-green-500'}>
+                  {app.icon}
+                </div>
+              </div>
+              <span className="font-medium">{app.name}</span>
+              <div className="ml-auto">
+                <div className={`w-3 h-3 rounded-full ${app.status === 'incident' ? 'bg-red-500' : 'bg-green-500'}`}></div>
+              </div>
+            </div>
+          ))}
+          
+          {incidents.length === 0 && (
+            <div className="flex flex-col items-center py-3 text-sm text-gray-500">
+              <CheckCircle className="h-5 w-5 text-green-500 mb-1" />
+              <p>Tous les systèmes OK</p>
+            </div>
+          )}
+        </CardContent>
       </ScrollArea>
     </Card>;
 };
+
 export default IncidentStatus;

@@ -7,7 +7,9 @@ import { clearConversation } from '@/lib/api';
 import { useToast } from "@/components/ui/use-toast";
 import { waitTimeInfo } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
+import IncidentManager from '@/components/IncidentManager';
 import { Clock } from 'lucide-react';
+import { appIncidents } from '@/components/IncidentStatus';
 
 // Trending questions for technician view
 const TECHNICIAN_TRENDING_QUESTIONS = ["Comment résoudre les problèmes avec Artis?", "Problèmes fréquents avec SAS", "Guide de dépannage rapide"];
@@ -17,6 +19,11 @@ const TechnicianView = () => {
   const [chatKey, setChatKey] = useState(0);
   const logoRef = useRef(null);
   const { toast } = useToast();
+  const [managedIncidents, setManagedIncidents] = useState([...appIncidents]);
+  
+  const handleIncidentStatusChange = (updatedIncidents) => {
+    setManagedIncidents(updatedIncidents);
+  };
   
   const handleFirstMessage = () => {
     setIsAnimated(true);
@@ -147,11 +154,11 @@ const TechnicianView = () => {
         </div>
       </header>
       
-      {/* Main content with chat */}
+      {/* Main content with chat and incident manager */}
       <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden pb-10">
         <div className="flex flex-1 w-full gap-4 h-full">
           {/* Chat interface */}
-          <div className="flex flex-col h-full w-full transition-all duration-500">
+          <div className="flex flex-col h-full w-2/3 transition-all duration-500">
             <ChatInterface 
               key={`technician-${chatKey}`} 
               chatbotName="Charles" 
@@ -161,11 +168,19 @@ const TechnicianView = () => {
               theme="technician"
             />
           </div>
+          
+          {/* Incident Manager Panel */}
+          <div className="w-1/3">
+            <IncidentManager 
+              incidents={managedIncidents}
+              onIncidentStatusChange={handleIncidentStatusChange}
+            />
+          </div>
         </div>
       </main>
       
       {/* Incident ticker placed at the bottom of the page */}
-      <IncidentTicker theme="technician" />
+      <IncidentTicker theme="technician" incidents={managedIncidents} />
     </div>
   );
 };

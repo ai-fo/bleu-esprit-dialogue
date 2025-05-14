@@ -4,9 +4,13 @@ import { appIncidents } from './IncidentStatus';
 
 interface IncidentTickerProps {
   theme?: 'user' | 'technician';
+  incidents?: typeof appIncidents;
 }
 
-const IncidentTicker: React.FC<IncidentTickerProps> = ({ theme = 'user' }) => {
+const IncidentTicker: React.FC<IncidentTickerProps> = ({ 
+  theme = 'user',
+  incidents = appIncidents 
+}) => {
   const themeColors = {
     user: {
       bg: 'bg-[#e6f0ff]/80',
@@ -29,7 +33,7 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({ theme = 'user' }) => {
   const colors = themeColors[theme];
   
   // Filter to only show incidents with status 'incident'
-  const activeIncidents = appIncidents.filter(incident => incident.status === 'incident');
+  const activeIncidents = incidents.filter(incident => incident.status === 'incident');
 
   if (activeIncidents.length === 0) {
     return null;
