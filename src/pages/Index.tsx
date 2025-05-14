@@ -6,28 +6,27 @@ import { RefreshCw } from 'lucide-react';
 import { clearConversation } from '@/lib/api';
 import { useToast } from "@/components/ui/use-toast";
 import { waitTimeInfo } from '@/components/IncidentStatus';
-import IncidentStatus, { appIncidents } from '@/components/IncidentStatus';
+import IncidentTicker from '@/components/IncidentTicker';
 import { Clock } from 'lucide-react';
 
 // Trending questions without having to access them from ChatInterface
 const TRENDING_QUESTIONS = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"];
+
 const Index = () => {
   const [isAnimated, setIsAnimated] = useState(false);
   const [chatKey, setChatKey] = useState(0);
-  const [showIncidents, setShowIncidents] = useState(true);
   const {
     toast
   } = useToast();
+
   const handleFirstMessage = () => {
     setIsAnimated(true);
-    // Hide incidents immediately after the first message
-    setShowIncidents(false);
   };
+
   const handleNewChat = async () => {
     try {
       await clearConversation();
       setIsAnimated(false);
-      setShowIncidents(true);
       setChatKey(prev => prev + 1);
       toast({
         title: "Conversation réinitialisée",
@@ -42,8 +41,9 @@ const Index = () => {
       });
     }
   };
+
   return <div className="h-screen flex flex-col bg-[#e6f0ff]/80 animate-fade-in overflow-hidden">
-      {/* Header section with title, logo and incidents dropdown */}
+      {/* Header section with title and logo */}
       <header className={`transition-all duration-500 ease-in-out ${isAnimated ? 'pt-2 pb-1 px-6' : 'pt-4 pb-2 px-6'}`}>
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-4">
@@ -62,7 +62,7 @@ const Index = () => {
                 HotlineAssistance
               </h1>
               
-              {/* Refresh button - now positioned next to the title when in chat mode */}
+              {/* Refresh button - positioned next to the title when in chat mode */}
               {isAnimated && (
                 <Button 
                   variant="ghost" 
@@ -77,23 +77,29 @@ const Index = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            {/* Incidents dropdown - only show when showIncidents is true */}
-            {showIncidents && <IncidentStatus asDropdown={true} compact={true} showTitle={false} />}
-          </div>
+          {/* Removed incident dropdown from here */}
         </div>
       </header>
       
-      {/* Main content with chat and incidents */}
+      {/* Main content with chat */}
       <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
         <div className="flex flex-1 w-full gap-4 h-full">
           {/* Chat interface */}
           <div className={`flex flex-col h-full w-full transition-all duration-500`}>
-            <ChatInterface key={chatKey} chatbotName="Bill" initialMessage="Bonjour ! Je suis Bill, votre assistant personnel. Comment puis-je vous aider aujourd'hui ?" onFirstMessage={handleFirstMessage} trendingQuestions={TRENDING_QUESTIONS} />
+            <ChatInterface 
+              key={chatKey} 
+              chatbotName="Bill" 
+              initialMessage="Bonjour ! Je suis Bill, votre assistant personnel. Comment puis-je vous aider aujourd'hui ?" 
+              onFirstMessage={handleFirstMessage} 
+              trendingQuestions={TRENDING_QUESTIONS} 
+            />
           </div>
         </div>
       </main>
       
+      {/* Incident ticker */}
+      <IncidentTicker />
+
       {/* Footer section - hotline banner */}
       <footer className="py-2 bg-[#004c92] text-white flex items-center justify-center gap-3 shadow-md">
         <p className="font-medium">Si l'IA prends le contrôle, contactez vite la hotline au <span className="text-[#ea384c] font-bold">3400</span></p>
@@ -104,4 +110,5 @@ const Index = () => {
       </footer>
     </div>;
 };
+
 export default Index;
