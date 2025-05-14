@@ -48,13 +48,21 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   // Filter to only show incidents with status 'incident'
   const activeIncidents = incidents.filter(incident => incident.status === 'incident');
 
-  if (activeIncidents.length === 0) {
-    return null;
-  }
+  // Default message when no active incidents
+  const defaultMessage = {
+    name: "Système",
+    message: "Aucun incident actif",
+    status: "incident"
+  };
 
+  // Use default message if no active incidents
+  const displayIncidents = activeIncidents.length === 0 ? [defaultMessage] : activeIncidents;
+  
   // Create multiple repetitions to ensure the ticker fills the space properly
-  // More repetitions create a more seamless experience
-  const repeatedIncidents = [...activeIncidents, ...activeIncidents, ...activeIncidents, ...activeIncidents];
+  // Many repetitions to create a more seamless continuous experience
+  const repeatedIncidents = [...displayIncidents, ...displayIncidents, ...displayIncidents, 
+                            ...displayIncidents, ...displayIncidents, ...displayIncidents,
+                            ...displayIncidents, ...displayIncidents, ...displayIncidents];
 
   return (
     <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden fixed bottom-0 left-0 right-0 w-full z-50`}>
