@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
@@ -15,9 +15,8 @@ const TRENDING_QUESTIONS = ["Problème avec Artis", "SAS est très lent aujourd'
 const Index = () => {
   const [isAnimated, setIsAnimated] = useState(false);
   const [chatKey, setChatKey] = useState(0);
-  const {
-    toast
-  } = useToast();
+  const logoRef = useRef(null);
+  const { toast } = useToast();
 
   const handleFirstMessage = () => {
     setIsAnimated(true);
@@ -42,6 +41,42 @@ const Index = () => {
     }
   };
 
+  // Mouse movement effect for logo
+  useEffect(() => {
+    const logo = logoRef.current;
+    if (!logo || !isAnimated) return;
+
+    const handleMouseMove = (e) => {
+      const rect = logo.getBoundingClientRect();
+      const logoX = rect.left + rect.width / 2;
+      const logoY = rect.top + rect.height / 2;
+      
+      // Calculate mouse position relative to the center of the logo
+      const mouseX = e.clientX - logoX;
+      const mouseY = e.clientY - logoY;
+      
+      // Calculate rotation angles (limit the effect to a reasonable range)
+      const rotateY = mouseX * 0.05; // Horizontal axis rotation
+      const rotateX = -mouseY * 0.05; // Vertical axis rotation (note the negative to make it intuitive)
+      
+      // Apply the transform with perspective for 3D effect
+      logo.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    };
+
+    // Reset transform when mouse leaves the window
+    const handleMouseLeave = () => {
+      logo.style.transform = 'perspective(500px) rotateX(0deg) rotateY(0deg)';
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [isAnimated]);
+
   return <div className="h-screen flex flex-col bg-[#e6f0ff]/80 animate-fade-in overflow-hidden">
       {/* Header section with title and logo */}
       <header className={`transition-all duration-500 ease-in-out ${isAnimated ? 'pt-2 pb-1 px-6' : 'pt-4 pb-2 px-6'}`}>
@@ -51,9 +86,10 @@ const Index = () => {
             {isAnimated && (
               <div className={`transition-all duration-500 w-8 h-8 flex-shrink-0 animate-scale-in`}>
                 <img 
+                  ref={logoRef}
                   src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
                   alt="Hotline Assistant Logo" 
-                  className="w-full h-full object-contain animate-[spin_3s_ease-in-out_infinite_alternate] hover:animate-[spin_1s_ease-in-out_infinite]" 
+                  className="w-full h-full object-contain transition-transform duration-200 ease-out" 
                 />
               </div>
             )}
