@@ -27,20 +27,23 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({ theme = 'user' }) => {
   };
 
   const colors = themeColors[theme];
+  
+  // Filter to only show incidents with status 'incident'
+  const activeIncidents = appIncidents.filter(incident => incident.status === 'incident');
 
-  if (appIncidents.length === 0) {
+  if (activeIncidents.length === 0) {
     return null;
   }
 
   return (
     <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden relative`}>
       <div className="animate-ticker whitespace-nowrap">
-        {[...appIncidents, ...appIncidents].map((incident, index) => (
+        {[...activeIncidents, ...activeIncidents].map((incident, index) => (
           <span key={index} className="inline-block mx-4 text-sm font-medium">
             <span className="inline-flex items-center">
               <span className={`h-1.5 w-1.5 rounded-full ${colors.dotBg} mr-2 animate-pulse`}></span>
               <span className={`${colors.alertText} mr-1`}>{incident.name}:</span>
-              <span className={colors.text}>{incident.status === 'incident' ? 'Problème en cours' : 'Fonctionnement normal'}</span>
+              <span className={colors.text}>Problème en cours</span>
             </span>
           </span>
         ))}
