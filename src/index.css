@@ -146,8 +146,11 @@
     animation: ticker 20s linear infinite;
   }
   
-  .animate-ticker-right {
-    animation: ticker-right-to-left 20s linear infinite;
+  .ticker-content {
+    display: inline-block;
+    white-space: nowrap;
+    padding-right: 100%;  /* Creates space after the last item */
+    animation: ticker-right-to-left 30s linear infinite;  /* Slower animation for better readability */
   }
 }
 

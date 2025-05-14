@@ -52,13 +52,14 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
     return null;
   }
 
-  // Duplicate the incidents to create a seamless loop effect
-  const repeatedIncidents = [...activeIncidents, ...activeIncidents];
+  // Create multiple repetitions to ensure the ticker fills the space properly
+  // More repetitions create a more seamless experience
+  const repeatedIncidents = [...activeIncidents, ...activeIncidents, ...activeIncidents, ...activeIncidents];
 
   return (
     <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden fixed bottom-0 left-0 right-0 w-full z-50`}>
       <div className="overflow-hidden relative w-full">
-        <div className="animate-ticker-right whitespace-nowrap">
+        <div className="ticker-content whitespace-nowrap">
           {repeatedIncidents.map((incident, index) => (
             <span key={index} className="inline-block mx-4 text-sm font-medium">
               <span className="inline-flex items-center">
