@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -12,6 +11,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { AlertTriangle } from "lucide-react";
+import { saveIncidentsToStorage, loadIncidentsFromStorage } from '@/utils/incidentStorage';
 
 interface IncidentManagerProps {
   incidents: AppIncident[];
@@ -19,6 +19,7 @@ interface IncidentManagerProps {
 }
 
 const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncidentStatusChange }) => {
+  // Initialize with incidents from props or localStorage
   const [localIncidents, setLocalIncidents] = useState<AppIncident[]>([...incidents]);
   const incidentCount = localIncidents.filter(app => app.status === 'incident').length;
   
@@ -30,9 +31,10 @@ const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncident
     setLocalIncidents(updatedIncidents);
   };
 
-  // Apply changes to parent component
+  // Apply changes to parent component and localStorage
   const handleApplyChanges = () => {
     onIncidentStatusChange(localIncidents);
+    saveIncidentsToStorage(localIncidents);
     toast({
       title: "Incidents mis à jour",
       description: "Le statut des applications a été mis à jour"
@@ -41,7 +43,8 @@ const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncident
 
   // Reset to original state
   const handleReset = () => {
-    setLocalIncidents([...incidents]);
+    const storedIncidents = loadIncidentsFromStorage();
+    setLocalIncidents([...storedIncidents]);
   };
 
   // Keep local incidents in sync with parent incidents

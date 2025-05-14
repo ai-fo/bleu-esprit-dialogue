@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { waitTimeInfo } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
 import IncidentManager from '@/components/IncidentManager';
 import { Clock } from 'lucide-react';
-import { appIncidents } from '@/components/IncidentStatus';
+import { loadIncidentsFromStorage, initializeIncidentStorage } from '@/utils/incidentStorage';
 
 // Trending questions for admin view
 const ADMIN_TRENDING_QUESTIONS = ["Comment résoudre les problèmes avec Artis?", "Problèmes fréquents avec SAS", "Guide de dépannage rapide"];
@@ -18,7 +19,13 @@ const AdminView = () => {
   const [chatKey, setChatKey] = useState(0);
   const logoRef = useRef(null);
   const { toast } = useToast();
-  const [managedIncidents, setManagedIncidents] = useState([...appIncidents]);
+  const [managedIncidents, setManagedIncidents] = useState(loadIncidentsFromStorage());
+  
+  // Initialize localStorage with default incidents if needed
+  useEffect(() => {
+    initializeIncidentStorage();
+    setManagedIncidents(loadIncidentsFromStorage());
+  }, []);
   
   const handleIncidentStatusChange = (updatedIncidents) => {
     setManagedIncidents(updatedIncidents);

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle, Clock, PhoneCall, Webcam, Database, HardDrive, Phone, Car, FileText, File, ChartBar, Bug, Image, LayoutDashboard, Network, Folder } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { loadIncidentsFromStorage } from '@/utils/incidentStorage';
 
 // Type definition for an application incident
 export interface AppIncident {
@@ -15,7 +16,7 @@ export interface AppIncident {
   icon: React.ReactNode;
 }
 
-// Current status of all applications
+// Default incidents data - This serves as a template but the app will use localStorage
 export const appIncidents: AppIncident[] = [{
   id: 'webex',
   name: 'Webex',
@@ -119,7 +120,7 @@ const IncidentStatus: React.FC<IncidentStatusProps> = ({
   compact = false,
   showWaitTime = false,
   asDropdown = false,
-  incidents = appIncidents,
+  incidents = loadIncidentsFromStorage(), // Load from localStorage instead of using default
   onIncidentStatusChange
 }) => {
   // If compact mode, only show incidents

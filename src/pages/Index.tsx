@@ -7,16 +7,32 @@ import { useToast } from "@/components/ui/use-toast";
 import { waitTimeInfo } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
 import { Clock } from 'lucide-react';
+import { loadIncidentsFromStorage, initializeIncidentStorage } from '@/utils/incidentStorage';
 
 // Trending questions without having to access them from ChatInterface
 const TRENDING_QUESTIONS = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"];
+
 const Index = () => {
   const [isAnimated, setIsAnimated] = useState(false);
   const [chatKey, setChatKey] = useState(0);
   const logoRef = useRef(null);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const [incidents, setIncidents] = useState(loadIncidentsFromStorage());
+
+  // Initialize localStorage with default incidents if needed and load incidents
+  useEffect(() => {
+    initializeIncidentStorage();
+    setIncidents(loadIncidentsFromStorage());
+
+    // Set up an event listener for storage changes to update incidents when changed in Admin view
+    const handleStorageChange = () => {
+      setIncidents(loadIncidentsFromStorage());
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const handleFirstMessage = () => {
     setIsAnimated(true);
   };
@@ -161,7 +177,7 @@ const Index = () => {
       </main>
       
       {/* Incident ticker placed at the bottom of the page */}
-      <IncidentTicker theme="user" />
+      <IncidentTicker theme="user" incidents={incidents} />
     </div>
   );
 };

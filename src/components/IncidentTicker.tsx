@@ -1,16 +1,29 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { appIncidents } from './IncidentStatus';
+import { loadIncidentsFromStorage } from '@/utils/incidentStorage';
+import { AppIncident } from './IncidentStatus';
 
 interface IncidentTickerProps {
   theme?: 'user' | 'technician';
-  incidents?: typeof appIncidents;
+  incidents?: AppIncident[];
 }
 
 const IncidentTicker: React.FC<IncidentTickerProps> = ({ 
   theme = 'user',
-  incidents = appIncidents 
+  incidents: propIncidents
 }) => {
+  const [incidents, setIncidents] = useState<AppIncident[]>(propIncidents || loadIncidentsFromStorage());
+
+  // Update incidents if provided via props or when localStorage changes
+  useEffect(() => {
+    if (propIncidents) {
+      setIncidents(propIncidents);
+    } else {
+      setIncidents(loadIncidentsFromStorage());
+    }
+  }, [propIncidents]);
+
   const themeColors = {
     user: {
       bg: 'bg-[#e6f0ff]/80',
