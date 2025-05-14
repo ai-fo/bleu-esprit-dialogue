@@ -1,10 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
 import { clearConversation } from '@/lib/api';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { waitTimeInfo } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
 import IncidentManager from '@/components/IncidentManager';
@@ -134,6 +133,11 @@ const TechnicianView = () => {
           
           {/* Actions and wait time info */}
           <div className="flex items-center gap-3 sm:gap-4">
+            <IncidentManager 
+              incidents={managedIncidents}
+              onIncidentStatusChange={handleIncidentStatusChange}
+            />
+            
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/'} 
@@ -154,11 +158,11 @@ const TechnicianView = () => {
         </div>
       </header>
       
-      {/* Main content with chat and incident manager */}
+      {/* Main content with chat interface */}
       <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden pb-10">
-        <div className="flex flex-1 w-full gap-4 h-full">
+        <div className="flex flex-1 w-full h-full">
           {/* Chat interface */}
-          <div className="flex flex-col h-full w-2/3 transition-all duration-500">
+          <div className="flex flex-col h-full w-full transition-all duration-500">
             <ChatInterface 
               key={`technician-${chatKey}`} 
               chatbotName="Charles" 
@@ -166,14 +170,6 @@ const TechnicianView = () => {
               onFirstMessage={handleFirstMessage} 
               trendingQuestions={TECHNICIAN_TRENDING_QUESTIONS}
               theme="technician"
-            />
-          </div>
-          
-          {/* Incident Manager Panel */}
-          <div className="w-1/3">
-            <IncidentManager 
-              incidents={managedIncidents}
-              onIncidentStatusChange={handleIncidentStatusChange}
             />
           </div>
         </div>

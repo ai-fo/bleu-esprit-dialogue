@@ -2,11 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppIncident } from './IncidentStatus';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { AlertTriangle } from "lucide-react";
 
 interface IncidentManagerProps {
   incidents: AppIncident[];
@@ -15,6 +20,7 @@ interface IncidentManagerProps {
 
 const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncidentStatusChange }) => {
   const [localIncidents, setLocalIncidents] = useState<AppIncident[]>([...incidents]);
+  const incidentCount = localIncidents.filter(app => app.status === 'incident').length;
   
   // Update checkbox state when an incident's status is changed
   const handleIncidentStatusChange = (id: string, isIncident: boolean) => {
@@ -44,13 +50,19 @@ const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncident
   }, [incidents]);
 
   return (
-    <Card className="w-full shadow-sm border border-[#4c9200]/10">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-[#4c9200] text-lg">Gestion des Incidents</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[300px] pr-4">
-          <div className="space-y-3">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="gap-2 border-[#4c9200] bg-[#f0ffe6]/80 hover:bg-[#e6ffe6] hover:text-[#4c9200]">
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <span>Incidents ({incidentCount})</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-80 p-0 bg-white" align="end">
+        <div className="px-3 py-2 border-b border-[#4c9200]/10">
+          <h3 className="text-[#4c9200] text-sm font-medium">Gestion des Incidents</h3>
+        </div>
+        <ScrollArea className="h-[300px]">
+          <div className="p-3 space-y-3">
             {localIncidents.map((app) => (
               <div key={app.id} className="flex items-center space-x-2">
                 <Checkbox 
@@ -73,23 +85,25 @@ const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncident
           </div>
         </ScrollArea>
         
-        <div className="flex justify-end space-x-2 mt-4">
+        <div className="flex justify-end space-x-2 p-3 border-t border-[#4c9200]/10">
           <Button 
             variant="outline" 
             onClick={handleReset}
             className="border-[#4c9200] text-[#4c9200] hover:bg-[#e6ffe6]/80"
+            size="sm"
           >
             Réinitialiser
           </Button>
           <Button 
             onClick={handleApplyChanges}
             className="bg-[#4c9200] hover:bg-[#4c9200]/90"
+            size="sm"
           >
             Appliquer
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
