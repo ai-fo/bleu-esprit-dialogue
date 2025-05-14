@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -93,9 +92,9 @@ const TechnicianView = () => {
     <div className="h-screen flex flex-col overflow-hidden bg-[#f0ffe6]/80">
       {/* Header */}
       <header className="pt-2 pb-1 px-4 sm:px-6 lg:px-8 border-b border-[#4c9200]/10">
-        <div className="max-w-7xl mx-auto w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          {/* Center logo and title on mobile, align left on desktop */}
-          <div className="flex items-center justify-center sm:justify-start">
+        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+          {/* Logo and title - now fully left aligned with larger font size */}
+          <div className="flex items-center">
             {/* Logo shown only in chat mode */}
             {isAnimated && (
               <div className="w-8 h-8 flex-shrink-0 animate-scale-in">
@@ -107,7 +106,7 @@ const TechnicianView = () => {
                 />
               </div>
             )}
-            <h1 className="text-xl sm:text-2xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer mx-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer mx-2">
               Oskour Technicien
             </h1>
             
@@ -126,7 +125,7 @@ const TechnicianView = () => {
           </div>
           
           {/* Actions and wait time info */}
-          <div className="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/'} 
