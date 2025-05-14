@@ -98,22 +98,16 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   // Filter to only show incidents with status 'incident'
   const activeIncidents = incidents.filter(incident => incident.status === 'incident');
 
-  // Default message when no active incidents
-  const defaultMessage = {
-    id: "system-no-incidents",
-    name: "Système",
-    message: "Aucun incident actif",
-    status: "incident" as const
-  };
-
-  // Use default message if no active incidents
-  const displayIncidents = activeIncidents.length === 0 ? [defaultMessage] : activeIncidents;
+  // Check if there are any active incidents
+  if (activeIncidents.length === 0) {
+    return null; // Don't render anything if there are no active incidents
+  }
   
   // Repeat the incidents multiple times to ensure the ticker is never empty
   const minRepetitions = 10;
-  const repetitions = Math.max(minRepetitions, Math.ceil(100 / displayIncidents.length));
+  const repetitions = Math.max(minRepetitions, Math.ceil(100 / activeIncidents.length));
   
-  console.log('Rendering ticker with incidents:', displayIncidents);
+  console.log('Rendering ticker with incidents:', activeIncidents);
   console.log('Current tickerKey:', tickerKey);
   console.log('Using repetitions:', repetitions);
 
@@ -130,8 +124,8 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
 
   // Create repeated incident items
   const repeatedIncidents = Array.from({ length: repetitions }).flatMap((_, repIndex) =>
-    displayIncidents.map((incident, incidentIndex) => 
-      createIncidentItem(incident, incidentIndex + (repIndex * displayIncidents.length))
+    activeIncidents.map((incident, incidentIndex) => 
+      createIncidentItem(incident, incidentIndex + (repIndex * activeIncidents.length))
     )
   );
 
