@@ -98,7 +98,7 @@ const Index = () => {
         defaultValue="user" 
         value={activeTab}
         onValueChange={setActiveTab}
-        className="w-full"
+        className="w-full flex flex-col h-full"
       >
         <div className={`transition-all duration-500 ease-in-out pt-2 pb-1 px-6 bg-${activeTab === "user" ? "[#e6f0ff]/80" : "[#f0ffe6]/80"}`}>
           <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
@@ -165,7 +165,7 @@ const Index = () => {
         
         <TabsContent 
           value="user" 
-          className="flex-1 flex flex-col bg-[#e6f0ff]/80 m-0 outline-none border-none"
+          className="flex-1 flex flex-col bg-[#e6f0ff]/80 m-0 outline-none border-none h-full overflow-hidden"
         >
           {/* Main content with chat */}
           <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
@@ -189,7 +189,7 @@ const Index = () => {
         
         <TabsContent 
           value="technician" 
-          className="flex-1 flex flex-col bg-[#f0ffe6]/80 m-0 outline-none border-none"
+          className="flex-1 flex flex-col bg-[#f0ffe6]/80 m-0 outline-none border-none h-full overflow-hidden"
         >
           {/* Main content with chat - technician view */}
           <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">

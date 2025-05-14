@@ -9,7 +9,7 @@ interface IncidentTickerProps {
 const IncidentTicker: React.FC<IncidentTickerProps> = ({ theme = 'user' }) => {
   const themeColors = {
     user: {
-      bg: 'bg-[#004c92]/5',
+      bg: 'bg-[#e6f0ff]',
       border: 'border-[#004c92]/10',
       text: 'text-[#004c92]/80',
       alertBg: 'bg-[#ea384c]/10',
@@ -17,7 +17,7 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({ theme = 'user' }) => {
       dotBg: 'bg-[#ea384c]'
     },
     technician: {
-      bg: 'bg-[#4c9200]/5',
+      bg: 'bg-[#f0ffe6]',
       border: 'border-[#4c9200]/10',
       text: 'text-[#4c9200]/80',
       alertBg: 'bg-[#ea384c]/10',
@@ -36,7 +36,7 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({ theme = 'user' }) => {
   }
 
   return (
-    <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden relative`}>
+    <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden relative w-full`}>
       <div className="animate-ticker whitespace-nowrap">
         {[...activeIncidents, ...activeIncidents].map((incident, index) => (
           <span key={index} className="inline-block mx-4 text-sm font-medium">
