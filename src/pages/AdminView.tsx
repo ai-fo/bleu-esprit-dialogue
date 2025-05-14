@@ -10,10 +10,10 @@ import IncidentManager from '@/components/IncidentManager';
 import { Clock } from 'lucide-react';
 import { appIncidents } from '@/components/IncidentStatus';
 
-// Trending questions for technician view
-const TECHNICIAN_TRENDING_QUESTIONS = ["Comment résoudre les problèmes avec Artis?", "Problèmes fréquents avec SAS", "Guide de dépannage rapide"];
+// Trending questions for admin view
+const ADMIN_TRENDING_QUESTIONS = ["Comment résoudre les problèmes avec Artis?", "Problèmes fréquents avec SAS", "Guide de dépannage rapide"];
 
-const TechnicianView = () => {
+const AdminView = () => {
   const [isAnimated, setIsAnimated] = useState(false);
   const [chatKey, setChatKey] = useState(0);
   const logoRef = useRef(null);
@@ -164,11 +164,11 @@ const TechnicianView = () => {
           {/* Chat interface */}
           <div className="flex flex-col h-full w-full transition-all duration-500">
             <ChatInterface 
-              key={`technician-${chatKey}`} 
+              key={`admin-${chatKey}`} 
               chatbotName="Charles" 
-              initialMessage="Bonjour ! Je suis Charles, votre assistant technicien. Comment puis-je vous aider aujourd'hui ?" 
+              initialMessage="Bonjour ! Je suis Charles, votre assistant administrateur. Comment puis-je vous aider aujourd'hui ?" 
               onFirstMessage={handleFirstMessage} 
-              trendingQuestions={TECHNICIAN_TRENDING_QUESTIONS}
+              trendingQuestions={ADMIN_TRENDING_QUESTIONS}
               theme="technician"
             />
           </div>
@@ -181,4 +181,4 @@ const TechnicianView = () => {
   );
 };
 
-export default TechnicianView;
+export default AdminView;
