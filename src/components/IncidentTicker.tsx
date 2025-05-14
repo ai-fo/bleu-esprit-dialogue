@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { appIncidents } from './IncidentStatus';
 import { loadIncidentsFromStorage } from '@/utils/incidentStorage';
@@ -15,27 +14,26 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
 }) => {
   const [incidents, setIncidents] = useState<AppIncident[]>(propIncidents || loadIncidentsFromStorage());
   const [tickerKey, setTickerKey] = useState(Date.now().toString());
-  const [isVisible, setIsVisible] = useState(true); // Contrôle l'affichage du ticker
+  const [isVisible, setIsVisible] = useState(true);
 
   // Update incidents if provided via props or when localStorage changes
   useEffect(() => {
     if (propIncidents) {
       setIncidents(propIncidents);
-      setTickerKey(Date.now().toString()); // Force re-render with new timestamp
+      setTickerKey(Date.now().toString());
     } else {
       setIncidents(loadIncidentsFromStorage());
-      setTickerKey(Date.now().toString()); // Force re-render with new timestamp
+      setTickerKey(Date.now().toString());
     }
     
     // Listen for storage events to update incidents when changed in another tab/window
     const handleStorageChange = () => {
       if (!propIncidents) {
         setIncidents(loadIncidentsFromStorage());
-        setTickerKey(Date.now().toString()); // Force re-render with new timestamp
+        setTickerKey(Date.now().toString());
       }
     };
     
-    // Listen for both storage events and our custom incident-update event
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('incident-update', handleStorageChange);
     
@@ -45,9 +43,8 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
     };
   }, [propIncidents]);
 
-  // Assurer l'affichage immédiat et le rafraîchissement du ticker
+  // Regular refresh of the ticker to ensure smooth animation
   useEffect(() => {
-    // Force un rafraîchissement du ticker toutes les 30 secondes
     const refreshInterval = setInterval(() => {
       setTickerKey(Date.now().toString());
     }, 30000);
@@ -98,8 +95,9 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   // Use default message if no active incidents
   const displayIncidents = activeIncidents.length === 0 ? [defaultMessage] : activeIncidents;
   
-  // Create 10 repetitions to ensure the ticker has enough content but not too much
-  const repeatedIncidents = Array(10).fill(displayIncidents).flat();
+  // Always use a fixed number of repetitions to keep animation speed consistent
+  // No matter how many incidents there are, we'll maintain a constant number of items
+  const repeatedIncidents = Array(5).fill(displayIncidents).flat();
 
   console.log('Rendering ticker with incidents:', displayIncidents);
   console.log('Current tickerKey:', tickerKey);

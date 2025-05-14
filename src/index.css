@@ -123,7 +123,7 @@
     display: none;
   }
 
-  /* Enhanced ticker animation - optimisée pour un démarrage immédiat */
+  /* Ticker animation with constant speed regardless of content length */
   @keyframes ticker {
     0% {
       transform: translateX(0);
@@ -133,6 +133,7 @@
     }
   }
 
+  /* Fixed speed animation that doesn't depend on content width */
   @keyframes ticker-right-to-left {
     0% {
       transform: translateX(0%);
@@ -149,9 +150,10 @@
   .ticker-content {
     display: inline-block !important;
     white-space: nowrap !important;
-    padding-right: 100% !important; /* Réduit pour une boucle plus rapide */
-    animation: ticker-right-to-left 30s linear infinite !important; /* Animation plus rapide */
+    padding-right: 100% !important;
+    /* Fixed duration animation to ensure consistent speed */
+    animation: ticker-right-to-left 30s linear infinite !important;
     will-change: transform !important;
-    animation-delay: 0s !important; /* Démarre immédiatement */
+    animation-delay: 0s !important;
   }
 }
