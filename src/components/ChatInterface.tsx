@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ChatMessage, { ChatMessageProps } from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -205,7 +206,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <div className="w-full flex flex-col h-full">
       {!isInitialState && (
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-hidden flex flex-col h-full">
           <ScrollArea ref={scrollAreaRef} className="flex-1 p-5 space-y-5">
             <div className="flex flex-col">
               {messages.map((message, index) => (
@@ -220,16 +221,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
           </ScrollArea>
 
-          <div className={`border-t border-[${themeColors.light}] p-4 bg-white`}>
+          <div className={`bg-transparent p-4 pb-0 sticky bottom-0 w-full`}>
             <div className="max-w-3xl mx-auto w-full relative">
-              <ChatInput 
-                onSendMessage={handleSendMessage} 
-                disabled={loading} 
-                getInputRef={setInputRef} 
-                onTrendingClick={toggleTrendingQuestions} 
-                showTrendingIcon={true} 
-                theme={theme}
-              />
+              <div className={`p-3 rounded-xl backdrop-blur-md shadow-lg bg-white/80 border border-${theme === 'user' ? 'blue' : 'green'}-100`}>
+                <ChatInput 
+                  onSendMessage={handleSendMessage} 
+                  disabled={loading} 
+                  getInputRef={setInputRef} 
+                  onTrendingClick={toggleTrendingQuestions} 
+                  showTrendingIcon={true} 
+                  theme={theme}
+                />
+              </div>
               
               {/* Trending Questions Dropdown for conversation mode */}
               {showTrendingQuestions && (
@@ -287,15 +290,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
             
             {/* Barre de recherche centrée et élargie */}
-            <div className="w-full max-w-3xl mx-auto px-2 py-3 relative">
-              <ChatInput 
-                onSendMessage={handleSendMessage} 
-                disabled={loading} 
-                getInputRef={setInputRef} 
-                onTrendingClick={toggleTrendingQuestions} 
-                showTrendingIcon={true} 
-                theme={theme}
-              />
+            <div className="w-full max-w-3xl mx-auto px-2 relative">
+              <div className={`p-3 rounded-xl backdrop-blur-md shadow-lg bg-white/80 border border-${theme === 'user' ? 'blue' : 'green'}-100`}>
+                <ChatInput 
+                  onSendMessage={handleSendMessage} 
+                  disabled={loading} 
+                  getInputRef={setInputRef} 
+                  onTrendingClick={toggleTrendingQuestions} 
+                  showTrendingIcon={true} 
+                  theme={theme}
+                />
+              </div>
               
               {/* Trending Questions Dropdown */}
               {showTrendingQuestions && (
