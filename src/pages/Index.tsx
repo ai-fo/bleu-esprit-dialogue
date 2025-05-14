@@ -100,7 +100,7 @@ const Index = () => {
         onValueChange={setActiveTab}
         className="w-full flex flex-col h-full"
       >
-        <div className={activeTab === "user" ? "bg-[#e6f0ff]/80 transition-all duration-500 ease-in-out pt-2 pb-1 px-6" : "bg-[#f0ffe6]/80 transition-all duration-500 ease-in-out pt-2 pb-1 px-6"}>
+        <div className={activeTab === "user" ? "bg-[#e6f0ff] transition-all duration-500 ease-in-out pt-2 pb-1 px-6" : "bg-[#f0ffe6] transition-all duration-500 ease-in-out pt-2 pb-1 px-6"}>
           <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
             <div className="flex items-center gap-4">
               {/* Logo shown only in chat mode */}
@@ -165,7 +165,7 @@ const Index = () => {
         
         <TabsContent 
           value="user" 
-          className="flex-1 flex flex-col bg-[#e6f0ff]/80 m-0 outline-none border-none h-full overflow-hidden"
+          className="flex-1 flex flex-col bg-[#e6f0ff] m-0 outline-none border-none h-full overflow-hidden"
         >
           {/* Main content with chat */}
           <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
@@ -183,13 +183,13 @@ const Index = () => {
             </div>
           </main>
           
-          {/* Incident ticker */}
-          <IncidentTicker />
+          {/* Incident ticker fixed at bottom */}
+          <IncidentTicker theme="user" />
         </TabsContent>
         
         <TabsContent 
           value="technician" 
-          className="flex-1 flex flex-col bg-[#f0ffe6]/80 m-0 outline-none border-none h-full overflow-hidden"
+          className="flex-1 flex flex-col bg-[#f0ffe6] m-0 outline-none border-none h-full overflow-hidden"
         >
           {/* Main content with chat - technician view */}
           <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
@@ -208,7 +208,7 @@ const Index = () => {
             </div>
           </main>
           
-          {/* Incident ticker - with technician theme */}
+          {/* Incident ticker fixed at bottom */}
           <IncidentTicker theme="technician" />
         </TabsContent>
       </Tabs>

@@ -36,8 +36,8 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({ theme = 'user' }) => {
   }
 
   return (
-    <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden relative w-full`}>
-      <div className="animate-ticker whitespace-nowrap">
+    <div className={`${colors.bg} border-t ${colors.border} overflow-hidden relative w-full mt-auto`}>
+      <div className="animate-ticker whitespace-nowrap py-2">
         {[...activeIncidents, ...activeIncidents].map((incident, index) => (
           <span key={index} className="inline-block mx-4 text-sm font-medium">
             <span className="inline-flex items-center">
