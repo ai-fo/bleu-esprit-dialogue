@@ -114,7 +114,7 @@ const TechnicianView = () => {
               </div>
             )}
             <h1 className="text-3xl sm:text-4xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer ml-0 mr-2">
-              Oskour Technicien
+              Oskour Admin
             </h1>
             
             {/* Refresh button - positioned next to the title when in chat mode */}
