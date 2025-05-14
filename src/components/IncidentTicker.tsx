@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { appIncidents } from './IncidentStatus';
 import { loadIncidentsFromStorage } from '@/utils/incidentStorage';
@@ -49,7 +48,7 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       setTickerKey(Date.now().toString());
-    }, 120000); // Match the animation duration (120s)
+    }, 240000); // Match the animation duration (240s - 4 minutes)
     
     return () => clearInterval(refreshInterval);
   }, []);
