@@ -29,15 +29,64 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const {
-    toast
-  } = useToast();
+  const initialLogoRef = useRef<HTMLImageElement>(null);
+  const { toast } = useToast();
+  
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuestionIndex(prev => (prev + 1) % QUESTIONS.length);
     }, 8000);
     return () => clearInterval(interval);
   }, []);
+
+  // Add 3D tilt effect for the initial logo
+  useEffect(() => {
+    const logo = initialLogoRef.current;
+    if (!logo) return;
+
+    const handleMouseMove = (e) => {
+      const rect = logo.getBoundingClientRect();
+      const logoX = rect.left + rect.width / 2;
+      const logoY = rect.top + rect.height / 2;
+      
+      // Calculate mouse position relative to the center of the logo
+      const mouseX = e.clientX - logoX;
+      const mouseY = e.clientY - logoY;
+      
+      // Calculate rotation angles (limit the effect to a reasonable range)
+      const rotateY = mouseX * 0.05; // Horizontal axis rotation
+      const rotateX = -mouseY * 0.05; // Vertical axis rotation (note the negative to make it intuitive)
+      
+      // Apply the transform with perspective for 3D effect
+      logo.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    };
+
+    // Reset transform when mouse leaves the window or stops moving
+    const handleMouseLeave = () => {
+      logo.style.transform = 'perspective(500px) rotateX(0deg) rotateY(0deg)';
+    };
+
+    // Add a debounced reset to initial position when mouse stops moving
+    let timeout;
+    const handleMouseStop = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        logo.style.transform = 'perspective(500px) rotateX(0deg) rotateY(0deg)';
+      }, 200); // Reset after 200ms of no movement
+    };
+
+    window.addEventListener('mousemove', (e) => {
+      handleMouseMove(e);
+      handleMouseStop();
+    });
+    window.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+      clearTimeout(timeout);
+    };
+  }, []);  // No dependencies needed since the effect runs only once
 
   // Fonction pour capturer la référence de l'input depuis le composant ChatInput
   const setInputRef = (ref: HTMLInputElement | null) => {
@@ -122,10 +171,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       observer.disconnect();
     };
   }, []);
+  
   const toggleTrendingQuestions = () => {
     setShowTrendingQuestions(prev => !prev);
   };
+  
   const isInitialState = messages.length === 0;
+  
   return <div className="w-full flex flex-col h-[calc(100vh-10rem)]">
       {!isInitialState && <ScrollArea ref={scrollAreaRef} className="flex-1 p-5 space-y-5 overflow-hidden scrollbar-hidden">
           <div className="flex flex-col">
@@ -137,12 +189,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {isInitialState && <div className="flex flex-col items-center justify-center h-full px-5 w-full flex-1">
           {/* Conteneur principal avec flexbox pour centrer verticalement */}
           <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto w-full">
-            {/* Logo large au-dessus des questions - Removed the auto-rotation animation */}
+            {/* Logo large au-dessus des questions - Now with 3D tilt effect */}
             <div className="mb-8">
               <img 
+                ref={initialLogoRef}
                 src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
                 alt="Hotline Assistant Logo" 
-                className="w-32 h-32 object-contain" 
+                className="w-32 h-32 object-contain transition-transform duration-200 ease-out" 
               />
             </div>
             
