@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -92,6 +91,25 @@ const Index = () => {
     };
   }, []);  // No dependencies needed since the effect runs only once
 
+  // Determine proper theme colors
+  const userThemeColors = {
+    bg: "bg-[#e6f0ff]/80",
+    text: "text-[#004c92]",
+    button: "bg-[#004c92] hover:bg-[#004c92]/90",
+    waitTime: "bg-[#0a5db3]",
+    border: "border-[#1a6dc3]"
+  };
+
+  const techThemeColors = {
+    bg: "bg-[#f0ffe6]/80",
+    text: "text-[#4c9200]",
+    button: "bg-[#4c9200] hover:bg-[#4c9200]/90",
+    waitTime: "bg-[#0ab35d]",
+    border: "border-[#1ac36d]"
+  };
+
+  const currentTheme = activeTab === "user" ? userThemeColors : techThemeColors;
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <Tabs 
@@ -140,13 +158,13 @@ const Index = () => {
                 <TabsList className={activeTab === "user" ? "bg-[#e6f0ff]" : "bg-[#e6ffe6]"}>
                   <TabsTrigger 
                     value="user"
-                    className={activeTab === "user" ? "bg-white text-[#004c92]" : "text-[#4c9200]/70"}
+                    className={activeTab === "user" ? "bg-white text-[#004c92]" : "text-[#004c92]/70"}
                   >
                     Vue Utilisateur
                   </TabsTrigger>
                   <TabsTrigger 
                     value="technician"
-                    className={activeTab === "technician" ? "bg-white text-[#4c9200]" : "text-[#004c92]/70"}
+                    className={activeTab === "technician" ? "bg-white text-[#4c9200]" : "text-[#4c9200]/70"}
                   >
                     Vue Technicien
                   </TabsTrigger>
@@ -154,7 +172,7 @@ const Index = () => {
                 
                 {/* Wait time info in the top right */}
                 <div className="flex items-center gap-2">
-                  <div className={activeTab === "user" ? "flex items-center gap-2 bg-[#0a5db3] rounded-full px-3 py-1 shadow-sm border border-[#1a6dc3]" : "flex items-center gap-2 bg-[#0ab35d] rounded-full px-3 py-1 shadow-sm border border-[#1ac36d]"}>
+                  <div className={`flex items-center gap-2 rounded-full px-3 py-1 shadow-sm ${currentTheme.waitTime} ${currentTheme.border}`}>
                     <Clock className="h-3 w-3 text-[#ea384c]" />
                     <span className="text-xs text-white font-medium">~{waitTimeInfo.minutes} min d'attente</span>
                     <span className="text-xs text-white/80">{waitTimeInfo.callers} appelants</span>
@@ -180,6 +198,7 @@ const Index = () => {
                   initialMessage="Bonjour ! Je suis Bill, votre assistant personnel. Comment puis-je vous aider aujourd'hui ?" 
                   onFirstMessage={handleFirstMessage} 
                   trendingQuestions={TRENDING_QUESTIONS} 
+                  theme="user"
                 />
               </div>
             </div>

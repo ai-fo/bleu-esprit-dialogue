@@ -57,6 +57,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
+  const sendButtonStyle = theme === 'user' 
+    ? 'bg-[#004c92] hover:bg-[#004c92]/90' 
+    : 'bg-[#4c9200] hover:bg-[#4c9200]/90';
+
   return (
     <form onSubmit={handleSubmit} className="flex items-center w-full gap-2">
       {showTrendingIcon && (
@@ -85,7 +89,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             type="submit"
             size="icon"
             disabled={!message.trim() || disabled}
-            className={`rounded-full h-8 w-8 bg-[${themeColors.primary}] ${themeColors.buttonHover}`}
+            className={`rounded-full h-8 w-8 ${sendButtonStyle}`}
           >
             <Send className="h-4 w-4 text-white" />
           </Button>
