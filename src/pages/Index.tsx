@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -41,7 +40,7 @@ const Index = () => {
     }
   };
 
-  // Mouse movement effect for logo - now applied regardless of isAnimated state
+  // Mouse movement effect for logo - applied regardless of isAnimated state
   useEffect(() => {
     const logo = logoRef.current;
     if (!logo) return;
@@ -63,19 +62,32 @@ const Index = () => {
       logo.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
     };
 
-    // Reset transform when mouse leaves the window
+    // Reset transform when mouse leaves the window or stops moving
     const handleMouseLeave = () => {
       logo.style.transform = 'perspective(500px) rotateX(0deg) rotateY(0deg)';
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    // Add a debounced reset to initial position when mouse stops moving
+    let timeout;
+    const handleMouseStop = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        logo.style.transform = 'perspective(500px) rotateX(0deg) rotateY(0deg)';
+      }, 200); // Reset after 200ms of no movement
+    };
+
+    window.addEventListener('mousemove', (e) => {
+      handleMouseMove(e);
+      handleMouseStop();
+    });
     window.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
+      clearTimeout(timeout);
     };
-  }, []);  // Removed isAnimated dependency
+  }, []);  // No dependencies needed since the effect runs only once
 
   return <div className="h-screen flex flex-col bg-[#e6f0ff]/80 animate-fade-in overflow-hidden">
       {/* Header section with title and logo */}
