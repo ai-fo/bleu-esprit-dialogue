@@ -15,6 +15,7 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
 }) => {
   const [incidents, setIncidents] = useState<AppIncident[]>(propIncidents || loadIncidentsFromStorage());
   const [tickerKey, setTickerKey] = useState(Date.now().toString());
+  const [isVisible, setIsVisible] = useState(true); // Contrôle l'affichage du ticker
 
   // Update incidents if provided via props or when localStorage changes
   useEffect(() => {
@@ -44,6 +45,16 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
     };
   }, [propIncidents]);
 
+  // Assurer l'affichage immédiat et le rafraîchissement du ticker
+  useEffect(() => {
+    // Force un rafraîchissement du ticker toutes les 30 secondes
+    const refreshInterval = setInterval(() => {
+      setTickerKey(Date.now().toString());
+    }, 30000);
+    
+    return () => clearInterval(refreshInterval);
+  }, []);
+  
   // Update when props change
   useEffect(() => {
     if (propIncidents) {
@@ -87,11 +98,13 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   // Use default message if no active incidents
   const displayIncidents = activeIncidents.length === 0 ? [defaultMessage] : activeIncidents;
   
-  // Create many more repetitions to ensure the ticker never shows empty space
-  const repeatedIncidents = Array(30).fill(displayIncidents).flat();
+  // Create 10 repetitions to ensure the ticker has enough content but not too much
+  const repeatedIncidents = Array(10).fill(displayIncidents).flat();
 
   console.log('Rendering ticker with incidents:', displayIncidents);
   console.log('Current tickerKey:', tickerKey);
+
+  if (!isVisible) return null;
 
   return (
     <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden fixed bottom-0 left-0 right-0 w-full z-50 incident-ticker-container`}>

@@ -50,7 +50,7 @@
   color: #888;
 }
 
-/* Ensure the ticker has correct styles */
+/* Ensure the ticker has correct styles and overrides any conflicting styles */
 .incident-ticker-container {
   width: 100vw !important;
   left: 0 !important;
@@ -58,4 +58,12 @@
   position: fixed !important;
   bottom: 0 !important;
   z-index: 50 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Style spécifique pour que le contenu du ticker s'affiche correctement */
+.ticker-content {
+  opacity: 1 !important;
+  visibility: visible !important;
 }
