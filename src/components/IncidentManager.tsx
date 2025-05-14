@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -21,7 +20,7 @@ interface IncidentManagerProps {
 
 const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncidentStatusChange }) => {
   // Initialize with incidents from props or localStorage
-  const [localIncidents, setLocalIncidents] = useState<AppIncident[]>([...incidents]);
+  const [localIncidents, setLocalIncidents] = useState<AppIncident[]>([]);
   const incidentCount = localIncidents.filter(app => app.status === 'incident').length;
   
   // Update checkbox state when an incident's status is changed
@@ -45,12 +44,25 @@ const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncident
   // Reset to original state
   const handleReset = () => {
     const storedIncidents = loadIncidentsFromStorage();
-    setLocalIncidents([...storedIncidents]);
+    setLocalIncidents(storedIncidents);
   };
 
-  // Keep local incidents in sync with parent incidents
+  // Keep local incidents in sync with parent incidents and initialize properly
   useEffect(() => {
-    setLocalIncidents([...incidents]);
+    if (incidents && incidents.length > 0) {
+      // Create a safe copy of incidents, ensuring each one has valid properties
+      const safeIncidents = incidents.map(incident => ({
+        id: incident.id,
+        name: incident.name,
+        status: incident.status,
+        // Make sure icon is a valid React node or null
+        icon: incident.icon || null
+      }));
+      setLocalIncidents(safeIncidents);
+    } else {
+      // If no incidents are provided, load from storage
+      setLocalIncidents(loadIncidentsFromStorage());
+    }
   }, [incidents]);
 
   return (
@@ -76,7 +88,7 @@ const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncident
                   className="border-[#4c9200]"
                 />
                 <div className="flex items-center gap-2 flex-1">
-                  {app.icon && (
+                  {app.icon && React.isValidElement(app.icon) && (
                     <span className="text-[#4c9200]">{app.icon}</span>
                   )}
                   <Label 

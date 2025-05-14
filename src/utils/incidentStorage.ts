@@ -9,10 +9,20 @@ const STORAGE_KEY = 'oskour_app_incidents';
 
 /**
  * Save incident data to localStorage
+ * Converts React nodes to string representations for storage
  */
 export const saveIncidentsToStorage = (incidents: AppIncident[]): void => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(incidents));
+    // Create a serializable version of the incidents
+    const serializableIncidents = incidents.map(incident => ({
+      id: incident.id,
+      name: incident.name,
+      status: incident.status,
+      // We can't store React nodes in localStorage, so we'll recreate them on load
+      iconType: incident.id // Store the id which we'll use to recreate the icon
+    }));
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serializableIncidents));
   } catch (error) {
     console.error('Error saving incidents to localStorage:', error);
   }
@@ -26,7 +36,22 @@ export const loadIncidentsFromStorage = (): AppIncident[] => {
   try {
     const storedData = localStorage.getItem(STORAGE_KEY);
     if (storedData) {
-      return JSON.parse(storedData);
+      // Parse the stored data
+      const parsedData = JSON.parse(storedData);
+      
+      // Map the stored data back to AppIncident objects
+      // Find matching default incidents to get the proper icon
+      return parsedData.map(item => {
+        // Find the matching default incident to get its icon
+        const matchingDefault = defaultIncidents.find(def => def.id === item.id);
+        return {
+          id: item.id,
+          name: item.name,
+          status: item.status,
+          // Use the icon from the default incidents
+          icon: matchingDefault ? matchingDefault.icon : null
+        };
+      });
     }
   } catch (error) {
     console.error('Error loading incidents from localStorage:', error);

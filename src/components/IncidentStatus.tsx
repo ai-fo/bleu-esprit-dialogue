@@ -127,6 +127,12 @@ const IncidentStatus: React.FC<IncidentStatusProps> = ({
   const displayIncidents = compact ? incidents.filter(app => app.status === 'incident') : incidents;
   const incidentCount = incidents.filter(app => app.status === 'incident').length;
 
+  // Safety check for invalid icons
+  const safeDisplayIncidents = displayIncidents.map(incident => ({
+    ...incident,
+    icon: incident.icon || null // Replace undefined or invalid icons with null
+  }));
+
   // Dropdown-only version
   if (asDropdown) {
     return <DropdownMenu>
@@ -136,11 +142,11 @@ const IncidentStatus: React.FC<IncidentStatusProps> = ({
             <span>Incidents ({incidentCount})</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56 bg-white">
-          {displayIncidents.map(app => <DropdownMenuItem key={app.id} className="flex items-center gap-2 px-3 py-2">
+        <DropdownMenuContent className="w-56 bg-white z-50">
+          {safeDisplayIncidents.map(app => <DropdownMenuItem key={app.id} className="flex items-center gap-2 px-3 py-2">
               <div className={`p-1 rounded-full ${app.status === 'incident' ? 'bg-red-100' : 'bg-green-100'}`}>
                 <div className={app.status === 'incident' ? 'text-red-500' : 'text-green-500'}>
-                  {app.icon}
+                  {app.icon && React.isValidElement(app.icon) ? app.icon : null}
                 </div>
               </div>
               <span className="font-medium">{app.name}</span>
@@ -163,11 +169,11 @@ const IncidentStatus: React.FC<IncidentStatusProps> = ({
       <ScrollArea className={compact ? "h-[220px]" : "max-h-[calc(100vh-300px)]"}>
         {/* Display incidents content here */}
         <CardContent className="p-4">
-          {displayIncidents.map(app => (
+          {safeDisplayIncidents.map(app => (
             <div key={app.id} className="flex items-center gap-2 p-2 border-b last:border-0">
               <div className={`p-1 rounded-full ${app.status === 'incident' ? 'bg-red-100' : 'bg-green-100'}`}>
                 <div className={app.status === 'incident' ? 'text-red-500' : 'text-green-500'}>
-                  {app.icon}
+                  {app.icon && React.isValidElement(app.icon) ? app.icon : null}
                 </div>
               </div>
               <span className="font-medium">{app.name}</span>
