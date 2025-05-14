@@ -41,10 +41,10 @@ const Index = () => {
     }
   };
 
-  // Mouse movement effect for logo
+  // Mouse movement effect for logo - now applied regardless of isAnimated state
   useEffect(() => {
     const logo = logoRef.current;
-    if (!logo || !isAnimated) return;
+    if (!logo) return;
 
     const handleMouseMove = (e) => {
       const rect = logo.getBoundingClientRect();
@@ -75,24 +75,22 @@ const Index = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [isAnimated]);
+  }, []);  // Removed isAnimated dependency
 
   return <div className="h-screen flex flex-col bg-[#e6f0ff]/80 animate-fade-in overflow-hidden">
       {/* Header section with title and logo */}
       <header className={`transition-all duration-500 ease-in-out ${isAnimated ? 'pt-2 pb-1 px-6' : 'pt-4 pb-2 px-6'}`}>
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-4">
-            {/* Logo avec animation uniquement visible en mode chat */}
-            {isAnimated && (
-              <div className={`transition-all duration-500 w-8 h-8 flex-shrink-0 animate-scale-in`}>
-                <img 
-                  ref={logoRef}
-                  src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
-                  alt="Hotline Assistant Logo" 
-                  className="w-full h-full object-contain transition-transform duration-200 ease-out" 
-                />
-              </div>
-            )}
+            {/* Logo with 3D tilt effect visible both in chat and non-chat mode */}
+            <div className={`transition-all duration-500 w-8 h-8 flex-shrink-0 ${!isAnimated ? 'w-12 h-12' : 'animate-scale-in'}`}>
+              <img 
+                ref={logoRef}
+                src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
+                alt="Hotline Assistant Logo" 
+                className="w-full h-full object-contain transition-transform duration-200 ease-out" 
+              />
+            </div>
             <div className="flex items-center">
               <h1 className={`text-xl sm:text-2xl font-bold text-[#004c92] transition-all duration-500 cursor-pointer`}>
                 HotlineAssistance
