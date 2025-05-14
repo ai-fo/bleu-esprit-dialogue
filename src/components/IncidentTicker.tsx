@@ -109,8 +109,13 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   // Use default message if no active incidents
   const displayIncidents = activeIncidents.length === 0 ? [defaultMessage] : activeIncidents;
   
+  // Repeat the incidents multiple times to ensure the ticker is never empty
+  const minRepetitions = 10;
+  const repetitions = Math.max(minRepetitions, Math.ceil(100 / displayIncidents.length));
+  
   console.log('Rendering ticker with incidents:', displayIncidents);
   console.log('Current tickerKey:', tickerKey);
+  console.log('Using repetitions:', repetitions);
 
   if (!isVisible) return null;
 
@@ -123,14 +128,18 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
     </div>
   );
 
+  // Create repeated incident items
+  const repeatedIncidents = Array.from({ length: repetitions }).flatMap((_, repIndex) =>
+    displayIncidents.map((incident, incidentIndex) => 
+      createIncidentItem(incident, incidentIndex + (repIndex * displayIncidents.length))
+    )
+  );
+
   return (
     <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden fixed bottom-0 left-0 right-0 w-full z-50 incident-ticker-container`}>
       <div ref={tickerRef} className="ticker-wrapper">
         <div key={tickerKey} className="ticker-content">
-          {/* Generate primary content */}
-          {displayIncidents.map((incident, index) => createIncidentItem(incident, index))}
-          {/* Duplicate content to ensure seamless looping */}
-          {displayIncidents.map((incident, index) => createIncidentItem(incident, index + displayIncidents.length))}
+          {repeatedIncidents}
         </div>
       </div>
     </div>
