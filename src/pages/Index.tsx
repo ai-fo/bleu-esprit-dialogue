@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -12,18 +11,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Trending questions without having to access them from ChatInterface
 const TRENDING_QUESTIONS = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"];
-
 const Index = () => {
   const [isAnimated, setIsAnimated] = useState(false);
   const [chatKey, setChatKey] = useState(0);
   const [activeTab, setActiveTab] = useState("user");
   const logoRef = useRef(null);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleFirstMessage = () => {
     setIsAnimated(true);
   };
-
   const handleNewChat = async () => {
     try {
       await clearConversation();
@@ -47,20 +45,19 @@ const Index = () => {
   useEffect(() => {
     const logo = logoRef.current;
     if (!logo) return;
-
-    const handleMouseMove = (e) => {
+    const handleMouseMove = e => {
       const rect = logo.getBoundingClientRect();
       const logoX = rect.left + rect.width / 2;
       const logoY = rect.top + rect.height / 2;
-      
+
       // Calculate mouse position relative to the center of the logo
       const mouseX = e.clientX - logoX;
       const mouseY = e.clientY - logoY;
-      
+
       // Calculate rotation angles (limit the effect to a reasonable range)
       const rotateY = mouseX * 0.05; // Horizontal axis rotation
       const rotateX = -mouseY * 0.05; // Vertical axis rotation (note the negative to make it intuitive)
-      
+
       // Apply the transform with perspective for 3D effect
       logo.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
     };
@@ -78,76 +75,47 @@ const Index = () => {
         logo.style.transform = 'perspective(500px) rotateX(0deg) rotateY(0deg)';
       }, 200); // Reset after 200ms of no movement
     };
-
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener('mousemove', e => {
       handleMouseMove(e);
       handleMouseStop();
     });
     window.addEventListener('mouseleave', handleMouseLeave);
-
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
       clearTimeout(timeout);
     };
-  }, []);  // No dependencies needed since the effect runs only once
+  }, []); // No dependencies needed since the effect runs only once
 
-  return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <Tabs 
-        defaultValue="user" 
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full h-full flex flex-col"
-      >
+  return <div className="h-screen flex flex-col overflow-hidden">
+      <Tabs defaultValue="user" value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col">
         <div className={activeTab === "user" ? "bg-[#e6f0ff]/80" : "bg-[#f0ffe6]/80"}>
           <div className="pt-2 pb-1 px-6">
             <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
               <div className="flex items-center gap-4">
                 {/* Logo shown only in chat mode */}
-                {isAnimated && (
-                  <div className="w-8 h-8 flex-shrink-0 animate-scale-in">
-                    <img 
-                      ref={logoRef}
-                      src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
-                      alt="Oskour Logo" 
-                      className="w-full h-full object-contain transition-transform duration-200 ease-out" 
-                    />
-                  </div>
-                )}
+                {isAnimated && <div className="w-8 h-8 flex-shrink-0 animate-scale-in">
+                    <img ref={logoRef} src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" alt="Oskour Logo" className="w-full h-full object-contain transition-transform duration-200 ease-out" />
+                  </div>}
                 <div className="flex items-center">
                   <h1 className={activeTab === "user" ? "text-xl sm:text-2xl font-bold text-[#004c92] transition-all duration-500 cursor-pointer" : "text-xl sm:text-2xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer"}>
                     Oskour
                   </h1>
                   
                   {/* Refresh button - positioned next to the title when in chat mode */}
-                  {isAnimated && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className={activeTab === "user" ? "rounded-full hover:bg-[#E6F0FF]/50 h-8 w-8 ml-2" : "rounded-full hover:bg-[#E6FFE6]/50 h-8 w-8 ml-2"}
-                      onClick={handleNewChat} 
-                      title="Nouvelle conversation"
-                    >
+                  {isAnimated && <Button variant="ghost" size="icon" className={activeTab === "user" ? "rounded-full hover:bg-[#E6F0FF]/50 h-8 w-8 ml-2" : "rounded-full hover:bg-[#E6FFE6]/50 h-8 w-8 ml-2"} onClick={handleNewChat} title="Nouvelle conversation">
                       <RefreshCw className={activeTab === "user" ? "h-4 w-4 text-[#004c92]" : "h-4 w-4 text-[#4c9200]"} />
-                    </Button>
-                  )}
+                    </Button>}
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
                 {/* Tabs navigation */}
                 <TabsList className={activeTab === "user" ? "bg-[#e6f0ff]" : "bg-[#e6ffe6]"}>
-                  <TabsTrigger 
-                    value="user"
-                    className={activeTab === "user" ? "bg-white text-[#004c92]" : "text-[#4c9200]/70"}
-                  >
+                  <TabsTrigger value="user" className={activeTab === "user" ? "bg-white text-[#004c92]" : "text-[#4c9200]/70"}>
                     Vue Utilisateur
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="technician"
-                    className={activeTab === "technician" ? "bg-white text-[#4c9200]" : "text-[#004c92]/70"}
-                  >
+                  <TabsTrigger value="technician" className={activeTab === "technician" ? "bg-white text-[#4c9200]" : "text-[#004c92]/70"}>
                     Vue Technicien
                   </TabsTrigger>
                 </TabsList>
@@ -165,58 +133,23 @@ const Index = () => {
           </div>
         </div>
         
-        <TabsContent 
-          value="user" 
-          className="flex-1 flex flex-col bg-[#e6f0ff]/80 m-0 outline-none border-none pb-10"
-        >
+        <TabsContent value="user" className="flex-1 flex flex-col bg-[#e6f0ff]/80 m-0 outline-none border-none pb-10">
           {/* Main content with chat */}
           <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
             <div className="flex flex-1 w-full gap-4 h-full">
               {/* Chat interface */}
               <div className="flex flex-col h-full w-full transition-all duration-500">
-                <ChatInterface 
-                  key={`user-${chatKey}`} 
-                  chatbotName="Bill" 
-                  initialMessage="Bonjour ! Je suis Bill, votre assistant personnel. Comment puis-je vous aider aujourd'hui ?" 
-                  onFirstMessage={handleFirstMessage} 
-                  trendingQuestions={TRENDING_QUESTIONS} 
-                />
+                <ChatInterface key={`user-${chatKey}`} chatbotName="Bill" initialMessage="Bonjour ! Je suis Bill, votre assistant personnel. Comment puis-je vous aider aujourd'hui ?" onFirstMessage={handleFirstMessage} trendingQuestions={TRENDING_QUESTIONS} />
               </div>
             </div>
           </main>
         </TabsContent>
         
-        <TabsContent 
-          value="technician" 
-          className="flex-1 flex flex-col bg-[#f0ffe6]/80 m-0 outline-none border-none pb-10"
-        >
-          {/* Main content with chat - technician view */}
-          <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
-            <div className="flex flex-1 w-full gap-4 h-full">
-              {/* Chat interface */}
-              <div className="flex flex-col h-full w-full transition-all duration-500">
-                <ChatInterface 
-                  key={`technician-${chatKey}`} 
-                  chatbotName="Bill (Tech)" 
-                  initialMessage="Bonjour ! Je suis Bill, votre assistant technique. Comment puis-je vous aider aujourd'hui ?" 
-                  onFirstMessage={handleFirstMessage} 
-                  trendingQuestions={["Mise à jour serveur bloquée", "Problème de déploiement", "Accès VPN impossible"]} 
-                  theme="technician"
-                />
-              </div>
-            </div>
-          </main>
-        </TabsContent>
+        
       </Tabs>
       
       {/* Incident ticker placed outside of TabsContent but still within the main container */}
-      {activeTab === "user" ? (
-        <IncidentTicker theme="user" />
-      ) : (
-        <IncidentTicker theme="technician" />
-      )}
-    </div>
-  );
+      {activeTab === "user" ? <IncidentTicker theme="user" /> : <IncidentTicker theme="technician" />}
+    </div>;
 };
-
 export default Index;
