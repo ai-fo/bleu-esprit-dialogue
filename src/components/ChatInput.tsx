@@ -2,82 +2,97 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SendHorizonal, TrendingUp } from 'lucide-react';
+import { Send, TrendingUp } from "lucide-react";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   getInputRef?: (ref: HTMLInputElement | null) => void;
-  showTrendingIcon?: boolean;
   onTrendingClick?: () => void;
+  showTrendingIcon?: boolean;
+  theme?: 'user' | 'technician';
 }
-
-const PLACEHOLDER_MESSAGES = [
-  "Je veux réinitialiser mon mot de passe...",
-  "J'ai un soucis avec mon accès VPN...",
-  "Comment configurer mon email professionnel...",
-  "Mon ordinateur ne démarre plus...",
-  "Comment installer un logiciel autorisé..."
-];
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   disabled = false,
   getInputRef,
+  onTrendingClick,
   showTrendingIcon = false,
-  onTrendingClick
+  theme = 'user'
 }) => {
-  const [message, setMessage] = useState('');
-  const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
+  const [message, setMessage] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    // Exposer la référence de l'input au parent
-    if (getInputRef && inputRef.current) {
-      getInputRef(inputRef.current);
-    }
-  }, [getInputRef, inputRef.current]);
-
-  // Effet pour faire défiler les placeholders
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPlaceholderIndex(prev => (prev + 1) % PLACEHOLDER_MESSAGES.length);
-    }, 5000); // Changer toutes les 5 secondes
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim()) {
-      onSendMessage(message);
-      setMessage('');
-      // Focus on the input after sending a message
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
+  // Theme-based colors
+  const colors = {
+    user: {
+      primary: '#004c92',
+      inputBorder: 'border-[#e6f0ff] focus-visible:ring-[#3380cc]/20',
+      buttonHover: 'hover:bg-[#004c92]/90',
+      trendingButton: 'text-[#004c92] hover:bg-[#e6f0ff]'
+    },
+    technician: {
+      primary: '#4c9200',
+      inputBorder: 'border-[#e6ffe6] focus-visible:ring-[#33cc80]/20',
+      buttonHover: 'hover:bg-[#4c9200]/90',
+      trendingButton: 'text-[#4c9200] hover:bg-[#e6ffe6]'
     }
   };
 
-  return <form onSubmit={handleSubmit} className="relative flex items-center gap-3 bg-gradient-to-r from-white/95 to-white/85 backdrop-blur-md rounded-xl p-2.5 px-4 shadow-md border border-[#e6f0ff]/60 w-full max-w-4xl mx-auto transition-all duration-300 hover:shadow-lg focus-within:border-[#3380cc]/40 focus-within:from-white focus-within:to-white/90">
-      {showTrendingIcon && <Button type="button" onClick={onTrendingClick} variant="ghost" className="h-10 w-10 p-2 rounded-lg text-[#3380cc] hover:text-[#004c92] hover:bg-blue-50 transition-all duration-200" title="Questions tendance">
-          <TrendingUp className="h-5 w-5" />
-        </Button>}
+  const themeColors = colors[theme];
+
+  useEffect(() => {
+    // Pass the input reference up to the parent component if needed
+    if (getInputRef && inputRef.current) {
+      getInputRef(inputRef.current);
+    }
+  }, [getInputRef]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (message.trim() && !disabled) {
+      onSendMessage(message.trim());
+      setMessage("");
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex items-center w-full gap-2">
+      {showTrendingIcon && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className={`rounded-full ${themeColors.trendingButton}`}
+          onClick={onTrendingClick}
+        >
+          <TrendingUp className="h-4 w-4" />
+        </Button>
+      )}
       
-      <Input 
-        ref={inputRef} 
-        value={message} 
-        onChange={e => setMessage(e.target.value)} 
-        placeholder={PLACEHOLDER_MESSAGES[currentPlaceholderIndex]}
-        disabled={disabled} 
-        className="flex-1 h-12 border-0 bg-transparent text-lg focus-visible:ring-0 focus-visible:ring-offset-0 text-[#003366] placeholder:text-[#3380cc]/40 transition-all duration-200 outline-none" 
-      />
-      
-      <Button type="submit" disabled={!message.trim() || disabled} className="rounded-lg bg-gradient-to-r from-[#004c92] to-[#1a69b5] hover:from-[#003366] hover:to-[#004c92] transition-all duration-300 shadow hover:shadow-md hover:scale-105 active:scale-95 h-12 w-12" size="icon">
-        <SendHorizonal className="h-5 w-5 text-white" />
-        <span className="sr-only">Envoyer</span>
-      </Button>
-    </form>;
+      <div className="relative flex-1">
+        <Input
+          ref={inputRef}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Posez votre question ici..."
+          className={`rounded-full pl-4 pr-12 py-6 shadow-sm ${themeColors.inputBorder} border bg-white`}
+          disabled={disabled}
+        />
+        <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+          <Button
+            type="submit"
+            size="icon"
+            disabled={!message.trim() || disabled}
+            className={`rounded-full h-8 w-8 bg-[${themeColors.primary}] ${themeColors.buttonHover}`}
+          >
+            <Send className="h-4 w-4 text-white" />
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
 };
 
 export default ChatInput;

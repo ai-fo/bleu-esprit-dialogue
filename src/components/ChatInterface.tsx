@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ChatMessage, { ChatMessageProps } from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -13,6 +14,7 @@ interface ChatInterfaceProps {
   initialMessage?: string;
   onFirstMessage?: () => void;
   trendingQuestions?: string[];
+  theme?: 'user' | 'technician';
 }
 
 const QUESTIONS = ["Quel souci rencontrez-vous ?", "En quoi puis-je vous aider ?", "Qu'est-ce qui ne va pas ?", "Un soucis technique ?"];
@@ -20,7 +22,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   chatbotName = "Bill",
   initialMessage = "Bonjour ! Je suis Bill, votre assistant personnel. Comment puis-je vous aider aujourd'hui ?",
   onFirstMessage,
-  trendingQuestions = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"]
+  trendingQuestions = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"],
+  theme = 'user'
 }) => {
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,6 +34,28 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const initialLogoRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
+  
+  // Theme-based colors
+  const colors = {
+    user: {
+      primary: '#004c92',
+      light: '#e6f0ff',
+      accent: '#3380cc',
+      gradient: 'from-white to-blue-50/80',
+      hover: 'from-blue-50 to-blue-100/80',
+      groupHover: 'bg-[#004c92]'
+    },
+    technician: {
+      primary: '#4c9200',
+      light: '#f0ffe6',
+      accent: '#33cc80',
+      gradient: 'from-white to-green-50/80',
+      hover: 'from-green-50 to-green-100/80',
+      groupHover: 'bg-[#4c9200]'
+    }
+  };
+  
+  const themeColors = colors[theme];
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -178,15 +203,26 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   
   const isInitialState = messages.length === 0;
   
-  return <div className="w-full flex flex-col h-[calc(100vh-10rem)]">
-      {!isInitialState && <ScrollArea ref={scrollAreaRef} className="flex-1 p-5 space-y-5 overflow-hidden scrollbar-hidden">
+  return (
+    <div className="w-full flex flex-col h-[calc(100vh-10rem)]">
+      {!isInitialState && (
+        <ScrollArea ref={scrollAreaRef} className="flex-1 p-5 space-y-5 overflow-hidden scrollbar-hidden">
           <div className="flex flex-col">
-            {messages.map((message, index) => <ChatMessage key={index} {...message} onNewChunkDisplayed={scrollToBottom} />)}
+            {messages.map((message, index) => (
+              <ChatMessage 
+                key={index} 
+                {...message} 
+                onNewChunkDisplayed={scrollToBottom} 
+                theme={theme}
+              />
+            ))}
             <div ref={messagesEndRef} />
           </div>
-        </ScrollArea>}
+        </ScrollArea>
+      )}
       
-      {isInitialState && <div className="flex flex-col items-center justify-center h-full px-5 w-full flex-1">
+      {isInitialState && (
+        <div className="flex flex-col items-center justify-center h-full px-5 w-full flex-1">
           {/* Conteneur principal avec flexbox pour centrer verticalement */}
           <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto w-full">
             {/* Logo large au-dessus des questions - Now with 3D tilt effect */}
@@ -201,61 +237,99 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             
             {/* Questions défilantes */}
             <div className="h-10 overflow-hidden text-center w-full mb-6">
-              <p key={currentQuestionIndex} className="text-[#3380cc] text-xl font-bold animate-slide-in">
+              <p 
+                key={currentQuestionIndex} 
+                className={`text-[${themeColors.primary}] text-xl font-bold animate-slide-in`}
+              >
                 {QUESTIONS[currentQuestionIndex]}
               </p>
             </div>
             
             {/* Barre de recherche centrée et élargie */}
             <div className="w-full max-w-3xl mx-auto px-2 py-3 relative">
-              <ChatInput onSendMessage={handleSendMessage} disabled={loading} getInputRef={setInputRef} onTrendingClick={toggleTrendingQuestions} showTrendingIcon={true} />
+              <ChatInput 
+                onSendMessage={handleSendMessage} 
+                disabled={loading} 
+                getInputRef={setInputRef} 
+                onTrendingClick={toggleTrendingQuestions} 
+                showTrendingIcon={true} 
+                theme={theme}
+              />
               
               {/* Trending Questions Dropdown */}
-              {showTrendingQuestions && <div className="absolute z-10 mt-3 w-full bg-white rounded-lg shadow-lg border border-[#e6f0ff] overflow-hidden">
-                  <div className="flex items-center gap-2 p-3 border-b border-[#e6f0ff]">
-                    <TrendingUp className="h-5 w-5 text-[#004c92]" />
-                    <h3 className="font-medium text-[#004c92] text-sm">Questions tendance aujourd'hui</h3>
+              {showTrendingQuestions && (
+                <div className={`absolute z-10 mt-3 w-full bg-white rounded-lg shadow-lg border border-[${themeColors.light}] overflow-hidden`}>
+                  <div className={`flex items-center gap-2 p-3 border-b border-[${themeColors.light}]`}>
+                    <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
+                    <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>Questions tendance aujourd'hui</h3>
                   </div>
                   <div className="p-3">
-                    {trendingQuestions.map((question, index) => <button key={index} onClick={() => {
-                handleSendMessage(question);
-                setShowTrendingQuestions(false);
-              }} className="w-full flex items-center text-left p-3 bg-gradient-to-r from-white to-blue-50/80 hover:from-blue-50 hover:to-blue-100/80 rounded-lg my-1.5 border border-[#e6f0ff] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[#004c92] text-sm group">
-                        <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-[#004c92] text-xs mr-3 group-hover:bg-[#004c92] group-hover:text-white transition-colors">
+                    {trendingQuestions.map((question, index) => (
+                      <button 
+                        key={index} 
+                        onClick={() => {
+                          handleSendMessage(question);
+                          setShowTrendingQuestions(false);
+                        }} 
+                        className={`w-full flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg my-1.5 border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group`}
+                      >
+                        <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
                           {index + 1}
                         </span>
                         <span className="flex-1">{question}</span>
-                      </button>)}
+                      </button>
+                    ))}
                   </div>
-                </div>}
+                </div>
+              )}
             </div>
           </div>
-        </div>}
+        </div>
+      )}
       
-      {!isInitialState && <div className="sticky bottom-0 p-3 bg-gradient-to-b from-transparent to-[#E6F0FF] w-full relative">
+      {!isInitialState && (
+        <div className={`sticky bottom-0 p-3 bg-gradient-to-b from-transparent to-[${themeColors.light}] w-full relative`}>
           <div className="max-w-3xl mx-auto w-full">
-            <ChatInput onSendMessage={handleSendMessage} disabled={loading} getInputRef={setInputRef} onTrendingClick={toggleTrendingQuestions} showTrendingIcon={true} />
+            <ChatInput 
+              onSendMessage={handleSendMessage} 
+              disabled={loading} 
+              getInputRef={setInputRef} 
+              onTrendingClick={toggleTrendingQuestions} 
+              showTrendingIcon={true} 
+              theme={theme}
+            />
           </div>
           
           {/* Trending Questions Dropdown for conversation mode - Now aligned with the chat input */}
-          {showTrendingQuestions && <div className="absolute bottom-full mb-3 max-w-3xl mx-auto w-full left-0 right-0 bg-white rounded-lg shadow-lg border border-[#e6f0ff] overflow-hidden">
-              <div className="flex items-center gap-2 p-3 border-b border-[#e6f0ff]">
-                <TrendingUp className="h-5 w-5 text-[#004c92]" />
-                <h3 className="font-medium text-[#004c92] text-sm">Questions tendance aujourd'hui</h3>
+          {showTrendingQuestions && (
+            <div className={`absolute bottom-full mb-3 max-w-3xl mx-auto w-full left-0 right-0 bg-white rounded-lg shadow-lg border border-[${themeColors.light}] overflow-hidden`}>
+              <div className={`flex items-center gap-2 p-3 border-b border-[${themeColors.light}]`}>
+                <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
+                <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>Questions tendance aujourd'hui</h3>
               </div>
               <div className="p-3">
-                {trendingQuestions.map((question, index) => <button key={index} onClick={() => {
-            handleSendMessage(question);
-            setShowTrendingQuestions(false);
-          }} className="w-full flex items-center text-left p-3 bg-gradient-to-r from-white to-blue-50/80 hover:from-blue-50 hover:to-blue-100/80 rounded-lg my-1.5 border border-[#e6f0ff] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[#004c92] text-sm group">
-                    <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-[#004c92] text-xs mr-3 group-hover:bg-[#004c92] group-hover:text-white transition-colors">
+                {trendingQuestions.map((question, index) => (
+                  <button 
+                    key={index} 
+                    onClick={() => {
+                      handleSendMessage(question);
+                      setShowTrendingQuestions(false);
+                    }} 
+                    className={`w-full flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg my-1.5 border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group`}
+                  >
+                    <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
                       {index + 1}
                     </span>
                     <span className="flex-1">{question}</span>
-                  </button>)}
+                  </button>
+                ))}
               </div>
-            </div>}
-        </div>}
-    </div>;
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
+
 export default ChatInterface;

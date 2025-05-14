@@ -1,55 +1,84 @@
 
 import React, { useState } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { cn } from '@/lib/utils';
+import { useToast } from '@/components/ui/use-toast';
 
 interface FeedbackButtonsProps {
   messageId: string;
+  theme?: 'user' | 'technician';
 }
 
-const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({ messageId }) => {
+const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({ messageId, theme = 'user' }) => {
   const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null);
   const { toast } = useToast();
+
+  // Theme-based colors
+  const colors = {
+    user: {
+      activeBg: 'bg-[#004c92]/10',
+      hoverBg: 'hover:bg-[#004c92]/5',
+      activeStroke: 'stroke-[#004c92]',
+      inactiveStroke: 'stroke-gray-400'
+    },
+    technician: {
+      activeBg: 'bg-[#4c9200]/10',
+      hoverBg: 'hover:bg-[#4c9200]/5',
+      activeStroke: 'stroke-[#4c9200]',
+      inactiveStroke: 'stroke-gray-400'
+    }
+  };
+
+  const themeColors = colors[theme];
 
   const handleFeedback = (type: 'positive' | 'negative') => {
     setFeedback(type);
     
-    // Ici on pourrait envoyer le feedback à l'API dans une implémentation future
-    console.log(`Feedback ${type} pour le message ${messageId}`);
+    // Simulate API call to send feedback
+    console.log(`Sending ${type} feedback for message ${messageId}`);
     
     toast({
-      title: "Merci pour votre feedback!",
+      title: "Merci pour votre retour",
       description: type === 'positive' 
-        ? "Nous sommes ravis que cette réponse vous ait été utile." 
-        : "Nous nous efforcerons d'améliorer nos réponses à l'avenir.",
-      duration: 3000
+        ? "C'est noté ! Votre feedback positif a été enregistré." 
+        : "Nous sommes désolés que cette réponse ne soit pas satisfaisante. Votre retour nous aidera à nous améliorer.",
+      duration: 3000,
     });
   };
 
   return (
-    <div className="flex items-center gap-2 mt-1">
-      <Button
-        variant="ghost"
-        size="icon"
-        className={`h-6 w-6 rounded-full ${feedback === 'positive' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:text-green-600 hover:bg-green-50'}`}
-        onClick={() => feedback !== 'positive' && handleFeedback('positive')}
-        disabled={feedback !== null}
-        title="Réponse utile"
+    <div className="flex items-center gap-1">
+      <button
+        onClick={() => handleFeedback('positive')}
+        className={cn(
+          "rounded-full p-1 transition-colors",
+          feedback === 'positive' ? themeColors.activeBg : themeColors.hoverBg
+        )}
+        aria-label="Feedback positif"
       >
-        <ThumbsUp className="h-4 w-4" />
-      </Button>
+        <ThumbsUp 
+          className={cn(
+            "h-3.5 w-3.5", 
+            feedback === 'positive' ? themeColors.activeStroke : themeColors.inactiveStroke
+          )}
+        />
+      </button>
       
-      <Button
-        variant="ghost"
-        size="icon"
-        className={`h-6 w-6 rounded-full ${feedback === 'negative' ? 'bg-red-100 text-red-700' : 'text-gray-500 hover:text-red-600 hover:bg-red-50'}`}
-        onClick={() => feedback !== 'negative' && handleFeedback('negative')}
-        disabled={feedback !== null}
-        title="Réponse pas utile"
+      <button
+        onClick={() => handleFeedback('negative')}
+        className={cn(
+          "rounded-full p-1 transition-colors",
+          feedback === 'negative' ? themeColors.activeBg : themeColors.hoverBg
+        )}
+        aria-label="Feedback négatif"
       >
-        <ThumbsDown className="h-4 w-4" />
-      </Button>
+        <ThumbsDown 
+          className={cn(
+            "h-3.5 w-3.5", 
+            feedback === 'negative' ? themeColors.activeStroke : themeColors.inactiveStroke
+          )}
+        />
+      </button>
     </div>
   );
 };

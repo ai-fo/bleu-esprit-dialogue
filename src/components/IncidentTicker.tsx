@@ -1,56 +1,49 @@
 
-import React, { useEffect, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { appIncidents } from '@/components/IncidentStatus';
+import React from 'react';
+import { appIncidents } from './IncidentStatus';
 
-const IncidentTicker = () => {
-  const activeIncidents = appIncidents.filter(app => app.status === 'incident');
-  
-  if (activeIncidents.length === 0) {
-    return (
-      <div className="bg-[#e6f0ff] border-t border-[#d0e1ff] py-1.5 px-4 text-center flex items-center justify-center gap-2 text-sm">
-        <span className="inline-flex items-center gap-1.5 text-[#004c92] font-medium">
-          <span className="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
-          Tous les systèmes fonctionnent normalement
-        </span>
-      </div>
-    );
+interface IncidentTickerProps {
+  theme?: 'user' | 'technician';
+}
+
+const IncidentTicker: React.FC<IncidentTickerProps> = ({ theme = 'user' }) => {
+  const themeColors = {
+    user: {
+      bg: 'bg-[#004c92]/5',
+      border: 'border-[#004c92]/10',
+      text: 'text-[#004c92]/80',
+      alertBg: 'bg-[#ea384c]/10',
+      alertText: 'text-[#ea384c]/90',
+      dotBg: 'bg-[#ea384c]'
+    },
+    technician: {
+      bg: 'bg-[#4c9200]/5',
+      border: 'border-[#4c9200]/10',
+      text: 'text-[#4c9200]/80',
+      alertBg: 'bg-[#ea384c]/10',
+      alertText: 'text-[#ea384c]/90',
+      dotBg: 'bg-[#ea384c]'
+    }
+  };
+
+  const colors = themeColors[theme];
+
+  if (appIncidents.length === 0) {
+    return null;
   }
 
   return (
-    <div className="bg-[#e6f0ff] border-t border-[#d0e1ff] py-1.5 relative overflow-hidden">
-      <div className="ticker-container whitespace-nowrap overflow-hidden w-full">
-        <div className="ticker-content inline-block whitespace-nowrap animate-ticker">
-          {activeIncidents.map((incident, index) => (
-            <React.Fragment key={incident.id}>
-              <span className="inline-flex items-center gap-2 mx-6">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <span className="text-[#004c92] font-medium">
-                  <span className="text-red-500 font-semibold">{incident.name}</span>
-                  <span className="ml-1">rencontre des difficultés</span>
-                </span>
-              </span>
-              {index < activeIncidents.length - 1 && (
-                <span className="mx-4 text-[#004c92]">•</span>
-              )}
-            </React.Fragment>
-          ))}
-          {/* Duplicate the content for seamless looping */}
-          {activeIncidents.map((incident, index) => (
-            <React.Fragment key={`dup-${incident.id}`}>
-              <span className="inline-flex items-center gap-2 mx-6">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <span className="text-[#004c92] font-medium">
-                  <span className="text-red-500 font-semibold">{incident.name}</span>
-                  <span className="ml-1">rencontre des difficultés</span>
-                </span>
-              </span>
-              {index < activeIncidents.length - 1 && (
-                <span className="mx-4 text-[#004c92]">•</span>
-              )}
-            </React.Fragment>
-          ))}
-        </div>
+    <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden relative`}>
+      <div className="animate-ticker whitespace-nowrap">
+        {[...appIncidents, ...appIncidents].map((incident, index) => (
+          <span key={index} className="inline-block mx-4 text-sm font-medium">
+            <span className="inline-flex items-center">
+              <span className={`h-1.5 w-1.5 rounded-full ${colors.dotBg} mr-2 animate-pulse`}></span>
+              <span className={`${colors.alertText} mr-1`}>{incident.app}:</span>
+              <span className={colors.text}>{incident.message}</span>
+            </span>
+          </span>
+        ))}
       </div>
     </div>
   );
