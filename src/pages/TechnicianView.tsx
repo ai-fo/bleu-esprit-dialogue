@@ -91,9 +91,11 @@ const TechnicianView = () => {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#f0ffe6]/80">
-      <div className="pt-2 pb-1 px-6">
-        <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
-          <div className="flex items-center gap-4">
+      {/* Header */}
+      <header className="pt-2 pb-1 px-4 sm:px-6 lg:px-8 border-b border-[#4c9200]/10">
+        <div className="max-w-7xl mx-auto w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          {/* Center logo and title on mobile, align left on desktop */}
+          <div className="flex items-center justify-center sm:justify-start">
             {/* Logo shown only in chat mode */}
             {isAnimated && (
               <div className="w-8 h-8 flex-shrink-0 animate-scale-in">
@@ -105,27 +107,26 @@ const TechnicianView = () => {
                 />
               </div>
             )}
-            <div className="flex items-center">
-              <h1 className="text-xl sm:text-2xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer">
-                Oskour Technicien
-              </h1>
-              
-              {/* Refresh button - positioned next to the title when in chat mode */}
-              {isAnimated && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="rounded-full hover:bg-[#E6FFE6]/50 h-8 w-8 ml-2" 
-                  onClick={handleNewChat} 
-                  title="Nouvelle conversation"
-                >
-                  <RefreshCw className="h-4 w-4 text-[#4c9200]" />
-                </Button>
-              )}
-            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer mx-2">
+              Oskour Technicien
+            </h1>
+            
+            {/* Refresh button - positioned next to the title when in chat mode */}
+            {isAnimated && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full hover:bg-[#E6FFE6]/50 h-8 w-8" 
+                onClick={handleNewChat} 
+                title="Nouvelle conversation"
+              >
+                <RefreshCw className="h-4 w-4 text-[#4c9200]" />
+              </Button>
+            )}
           </div>
-
-          <div className="flex items-center gap-4">
+          
+          {/* Actions and wait time info */}
+          <div className="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/'} 
@@ -134,17 +135,17 @@ const TechnicianView = () => {
               Vue Utilisateur
             </Button>
             
-            {/* Wait time info in the top right */}
-            <div className="flex items-center gap-2">
+            {/* Wait time info */}
+            <div className="flex items-center">
               <div className="flex items-center gap-2 bg-[#0ab35d] rounded-full px-3 py-1 shadow-sm border border-[#1ac36d]">
                 <Clock className="h-3 w-3 text-[#ea384c]" />
-                <span className="text-xs text-white font-medium">~{waitTimeInfo.minutes} min d'attente</span>
-                <span className="text-xs text-white/80">{waitTimeInfo.callers} appelants</span>
+                <span className="text-xs text-white font-medium">~{waitTimeInfo.minutes} min</span>
+                <span className="hidden sm:inline text-xs text-white/80">{waitTimeInfo.callers} appelants</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
       
       {/* Main content with chat */}
       <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden pb-10">
