@@ -39,8 +39,8 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({ theme = 'user' }) => {
           <span key={index} className="inline-block mx-4 text-sm font-medium">
             <span className="inline-flex items-center">
               <span className={`h-1.5 w-1.5 rounded-full ${colors.dotBg} mr-2 animate-pulse`}></span>
-              <span className={`${colors.alertText} mr-1`}>{incident.app}:</span>
-              <span className={colors.text}>{incident.message}</span>
+              <span className={`${colors.alertText} mr-1`}>{incident.name}:</span>
+              <span className={colors.text}>{incident.status === 'incident' ? 'Problème en cours' : 'Fonctionnement normal'}</span>
             </span>
           </span>
         ))}

@@ -12,11 +12,14 @@ import {
 export type ReliabilityLevel = 'high' | 'medium' | 'low';
 
 interface ReliabilityIndicatorProps {
-  level: ReliabilityLevel;
+  score: number;
   className?: string;
 }
 
-const ReliabilityIndicator: React.FC<ReliabilityIndicatorProps> = ({ level, className }) => {
+const ReliabilityIndicator: React.FC<ReliabilityIndicatorProps> = ({ score, className }) => {
+  // Determine level based on score
+  const level: ReliabilityLevel = score >= 90 ? 'high' : score >= 70 ? 'medium' : 'low';
+  
   const getConfig = () => {
     switch (level) {
       case 'high':
