@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -122,7 +123,7 @@
     display: none;
   }
 
-  /* Completely redesigned ticker animation with fixed speed */
+  /* Ticker animation with much slower speed for better readability */
   .ticker-wrapper {
     position: relative;
     width: 100%;
@@ -132,7 +133,7 @@
   .ticker-content {
     display: inline-flex !important;
     white-space: nowrap !important;
-    animation: ticker-move 30s linear infinite !important;
+    animation: ticker-move 120s linear infinite !important; /* Much slower animation (2 minutes per cycle) */
     will-change: transform !important;
     padding-right: 50px !important;
   }
@@ -140,6 +141,12 @@
   .ticker-item {
     flex-shrink: 0;
     padding: 0 20px;
+    transition: all 0.5s ease;
+  }
+  
+  /* Add hover effect to pause animation when users hover on ticker items */
+  .ticker-wrapper:hover .ticker-content {
+    animation-play-state: paused !important;
   }
 
   @keyframes ticker-move {

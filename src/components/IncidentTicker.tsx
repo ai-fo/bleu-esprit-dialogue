@@ -49,7 +49,7 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       setTickerKey(Date.now().toString());
-    }, 30000);
+    }, 120000); // Match the animation duration (120s)
     
     return () => clearInterval(refreshInterval);
   }, []);
@@ -119,11 +119,11 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
 
   if (!isVisible) return null;
 
-  // Create incident items
+  // Create incident item
   const createIncidentItem = (incident: AppIncident, index: number) => (
     <div key={`${incident.id}-${index}-${tickerKey}`} className="ticker-item inline-flex items-center">
       <span className={`h-1.5 w-1.5 rounded-full ${colors.dotBg} mr-2 animate-pulse`}></span>
-      <span className={`${colors.alertText} mr-1`}>{incident.name}:</span>
+      <span className={`${colors.alertText} mr-1 font-medium`}>{incident.name}:</span>
       <span className={colors.text}>Problème en cours</span>
     </div>
   );
