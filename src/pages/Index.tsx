@@ -100,7 +100,7 @@ const Index = () => {
         onValueChange={setActiveTab}
         className="w-full flex flex-col h-full"
       >
-        <div className={`transition-all duration-500 ease-in-out pt-2 pb-1 px-6 bg-${activeTab === "user" ? "[#e6f0ff]/80" : "[#f0ffe6]/80"}`}>
+        <div className={activeTab === "user" ? "bg-[#e6f0ff]/80 transition-all duration-500 ease-in-out pt-2 pb-1 px-6" : "bg-[#f0ffe6]/80 transition-all duration-500 ease-in-out pt-2 pb-1 px-6"}>
           <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
             <div className="flex items-center gap-4">
               {/* Logo shown only in chat mode */}
@@ -115,7 +115,7 @@ const Index = () => {
                 </div>
               )}
               <div className="flex items-center">
-                <h1 className={`text-xl sm:text-2xl font-bold text-${activeTab === "user" ? "[#004c92]" : "[#4c9200]"} transition-all duration-500 cursor-pointer`}>
+                <h1 className={activeTab === "user" ? "text-xl sm:text-2xl font-bold text-[#004c92] transition-all duration-500 cursor-pointer" : "text-xl sm:text-2xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer"}>
                   Oskour
                 </h1>
                 
@@ -124,11 +124,11 @@ const Index = () => {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className={`rounded-full hover:bg-${activeTab === "user" ? "[#E6F0FF]" : "[#E6FFE6]"}/50 h-8 w-8 ml-2`}
+                    className={activeTab === "user" ? "rounded-full hover:bg-[#E6F0FF]/50 h-8 w-8 ml-2" : "rounded-full hover:bg-[#E6FFE6]/50 h-8 w-8 ml-2"}
                     onClick={handleNewChat} 
                     title="Nouvelle conversation"
                   >
-                    <RefreshCw className={`h-4 w-4 text-${activeTab === "user" ? "[#004c92]" : "[#4c9200]"}`} />
+                    <RefreshCw className={activeTab === "user" ? "h-4 w-4 text-[#004c92]" : "h-4 w-4 text-[#4c9200]"} />
                   </Button>
                 )}
               </div>
@@ -136,7 +136,7 @@ const Index = () => {
 
             <div className="flex items-center gap-4">
               {/* Tabs navigation */}
-              <TabsList className={`bg-${activeTab === "user" ? "[#e6f0ff]" : "[#e6ffe6]"}`}>
+              <TabsList className={activeTab === "user" ? "bg-[#e6f0ff]" : "bg-[#e6ffe6]"}>
                 <TabsTrigger 
                   value="user"
                   className={activeTab === "user" ? "bg-white text-[#004c92]" : "text-[#4c9200]/70"}
@@ -153,7 +153,7 @@ const Index = () => {
               
               {/* Wait time info in the top right */}
               <div className="flex items-center gap-2">
-                <div className={`flex items-center gap-2 bg-${activeTab === "user" ? "[#0a5db3]" : "[#0ab35d]"} rounded-full px-3 py-1 shadow-sm border border-${activeTab === "user" ? "[#1a6dc3]" : "[#1ac36d]"}`}>
+                <div className={activeTab === "user" ? "flex items-center gap-2 bg-[#0a5db3] rounded-full px-3 py-1 shadow-sm border border-[#1a6dc3]" : "flex items-center gap-2 bg-[#0ab35d] rounded-full px-3 py-1 shadow-sm border border-[#1ac36d]"}>
                   <Clock className="h-3 w-3 text-[#ea384c]" />
                   <span className="text-xs text-white font-medium">~{waitTimeInfo.minutes} min d'attente</span>
                   <span className="text-xs text-white/80">{waitTimeInfo.callers} appelants</span>
@@ -171,7 +171,7 @@ const Index = () => {
           <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
             <div className="flex flex-1 w-full gap-4 h-full">
               {/* Chat interface */}
-              <div className={`flex flex-col h-full w-full transition-all duration-500`}>
+              <div className="flex flex-col h-full w-full transition-all duration-500">
                 <ChatInterface 
                   key={`user-${chatKey}`} 
                   chatbotName="Bill" 
@@ -195,7 +195,7 @@ const Index = () => {
           <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
             <div className="flex flex-1 w-full gap-4 h-full">
               {/* Chat interface */}
-              <div className={`flex flex-col h-full w-full transition-all duration-500`}>
+              <div className="flex flex-col h-full w-full transition-all duration-500">
                 <ChatInterface 
                   key={`technician-${chatKey}`} 
                   chatbotName="Bill (Tech)" 

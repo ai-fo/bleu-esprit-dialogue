@@ -17,7 +17,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, onNewChunkDisp
   const isUser = role === 'user';
 
   // Theme-based colors
-  const colors = {
+  const themeColors = {
     user: {
       userBg: 'bg-[#004c92]',
       assistantBg: 'bg-[#f6f8fc]',
@@ -34,7 +34,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, onNewChunkDisp
     }
   };
 
-  const themeColors = colors[theme];
+  const colors = themeColors[theme];
 
   return (
     <div
@@ -47,8 +47,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, onNewChunkDisp
         className={cn(
           'rounded-2xl px-4 py-2 max-w-[80%] sm:max-w-[70%] break-words',
           isUser
-            ? `${themeColors.userBg} ${themeColors.userText}`
-            : `${themeColors.assistantBg} ${themeColors.assistantText} border ${themeColors.assistantBorder}`
+            ? `${colors.userBg} ${colors.userText}`
+            : `${colors.assistantBg} ${colors.assistantText} border ${colors.assistantBorder}`
         )}
       >
         <div className="prose prose-sm max-w-none">

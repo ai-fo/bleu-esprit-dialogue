@@ -25,22 +25,24 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Theme-based colors
-  const colors = {
+  const themeColors = {
     user: {
       primary: '#004c92',
       inputBorder: 'border-[#e6f0ff] focus-visible:ring-[#3380cc]/20',
       buttonHover: 'hover:bg-[#004c92]/90',
-      trendingButton: 'text-[#004c92] hover:bg-[#e6f0ff]'
+      trendingButton: 'text-[#004c92] hover:bg-[#e6f0ff]',
+      buttonBg: 'bg-[#004c92]'
     },
     technician: {
       primary: '#4c9200',
       inputBorder: 'border-[#e6ffe6] focus-visible:ring-[#33cc80]/20',
       buttonHover: 'hover:bg-[#4c9200]/90',
-      trendingButton: 'text-[#4c9200] hover:bg-[#e6ffe6]'
+      trendingButton: 'text-[#4c9200] hover:bg-[#e6ffe6]',
+      buttonBg: 'bg-[#4c9200]'
     }
   };
 
-  const themeColors = colors[theme];
+  const colors = themeColors[theme];
 
   useEffect(() => {
     // Pass the input reference up to the parent component if needed
@@ -64,7 +66,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           type="button"
           variant="ghost"
           size="icon"
-          className={`rounded-full ${themeColors.trendingButton}`}
+          className={`rounded-full ${colors.trendingButton}`}
           onClick={onTrendingClick}
         >
           <TrendingUp className="h-4 w-4" />
@@ -77,7 +79,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Posez votre question ici..."
-          className={`rounded-full pl-4 pr-12 py-6 shadow-sm ${themeColors.inputBorder} border bg-white`}
+          className={`rounded-full pl-4 pr-12 py-6 shadow-sm ${colors.inputBorder} border bg-white`}
           disabled={disabled}
         />
         <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
@@ -85,7 +87,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             type="submit"
             size="icon"
             disabled={!message.trim() || disabled}
-            className={`rounded-full h-8 w-8 bg-[${themeColors.primary}] ${themeColors.buttonHover}`}
+            className={`rounded-full h-8 w-8 ${colors.buttonBg} ${colors.buttonHover}`}
           >
             <Send className="h-4 w-4 text-white" />
           </Button>
