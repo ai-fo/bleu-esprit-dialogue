@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -94,18 +95,20 @@ const Index = () => {
       <header className={`transition-all duration-500 ease-in-out ${isAnimated ? 'pt-2 pb-1 px-6' : 'pt-4 pb-2 px-6'}`}>
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-4">
-            {/* Logo with 3D tilt effect visible both in chat and non-chat mode */}
-            <div className={`transition-all duration-500 w-8 h-8 flex-shrink-0 ${!isAnimated ? 'w-12 h-12' : 'animate-scale-in'}`}>
-              <img 
-                ref={logoRef}
-                src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
-                alt="Hotline Assistant Logo" 
-                className="w-full h-full object-contain transition-transform duration-200 ease-out" 
-              />
-            </div>
+            {/* Logo shown only in chat mode */}
+            {isAnimated && (
+              <div className="w-8 h-8 flex-shrink-0 animate-scale-in">
+                <img 
+                  ref={logoRef}
+                  src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
+                  alt="Oskour Logo" 
+                  className="w-full h-full object-contain transition-transform duration-200 ease-out" 
+                />
+              </div>
+            )}
             <div className="flex items-center">
               <h1 className={`text-xl sm:text-2xl font-bold text-[#004c92] transition-all duration-500 cursor-pointer`}>
-                HotlineAssistance
+                Oskour
               </h1>
               
               {/* Refresh button - positioned next to the title when in chat mode */}
