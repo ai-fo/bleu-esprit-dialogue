@@ -177,6 +177,7 @@ const AdminView = () => {
               onFirstMessage={handleFirstMessage} 
               trendingQuestions={ADMIN_TRENDING_QUESTIONS}
               theme="technician"
+              trendingQuestionsTitle="Questions tendance aujourd'hui posées par les admins"
             />
           </div>
         </div>

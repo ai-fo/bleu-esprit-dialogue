@@ -14,6 +14,7 @@ interface ChatInterfaceProps {
   onFirstMessage?: () => void;
   trendingQuestions?: string[];
   theme?: 'user' | 'technician';
+  trendingQuestionsTitle?: string;
 }
 
 const QUESTIONS = ["Quel souci rencontrez-vous ?", "En quoi puis-je vous aider ?", "Qu'est-ce qui ne va pas ?", "Un soucis technique ?"];
@@ -22,7 +23,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   initialMessage = "Bonjour ! Je suis Bill, votre assistant personnel. Comment puis-je vous aider aujourd'hui ?",
   onFirstMessage,
   trendingQuestions = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"],
-  theme = 'user'
+  theme = 'user',
+  trendingQuestionsTitle = "Questions tendance aujourd'hui"
 }) => {
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [loading, setLoading] = useState(false);
@@ -240,7 +242,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   <div className="absolute bottom-full mb-3 w-full max-w-3xl bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-10">
                     <div className="flex items-center gap-2 p-3 border-b border-gray-100">
                       <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
-                      <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>Questions tendance aujourd'hui</h3>
+                      <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>{trendingQuestionsTitle}</h3>
                     </div>
                     <div className="p-3">
                       {trendingQuestions.map((question, index) => (
@@ -309,7 +311,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <div className="absolute z-10 mt-3 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                   <div className="flex items-center gap-2 p-3 border-b border-gray-100">
                     <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
-                    <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>Questions tendance aujourd'hui</h3>
+                    <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>{trendingQuestionsTitle}</h3>
                   </div>
                   <div className="p-3">
                     {trendingQuestions.map((question, index) => (
