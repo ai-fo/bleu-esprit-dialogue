@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ChatMessage, { ChatMessageProps } from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -47,12 +48,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       groupHover: 'bg-[#004c92]'
     },
     technician: {
-      primary: '#4c9200',
-      light: '#f0ffe6',
-      accent: '#33cc80',
-      gradient: 'from-white to-green-50/80',
-      hover: 'from-green-50 to-green-100/80',
-      groupHover: 'bg-[#4c9200]'
+      primary: '#F97316', // Changed from green to orange
+      light: '#FFF0E0',   // Light orange background
+      accent: '#FEC6A1',  // Accent orange
+      gradient: 'from-white to-orange-50/80',
+      hover: 'from-orange-50 to-orange-100/80',
+      groupHover: 'bg-[#F97316]'
     }
   };
   
