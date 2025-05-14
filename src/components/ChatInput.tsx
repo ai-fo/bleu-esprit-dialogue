@@ -28,13 +28,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const colors = {
     user: {
       primary: '#004c92',
-      inputBorder: 'border-transparent focus-visible:ring-[#3380cc]/20',
+      inputBorder: 'border-transparent focus-visible:border-transparent',
       buttonHover: 'hover:bg-[#004c92]/90',
       trendingButton: 'text-[#004c92] hover:bg-[#e6f0ff]'
     },
     technician: {
       primary: '#4c9200',
-      inputBorder: 'border-transparent focus-visible:ring-[#33cc80]/20',
+      inputBorder: 'border-transparent focus-visible:border-transparent',
       buttonHover: 'hover:bg-[#4c9200]/90',
       trendingButton: 'text-[#4c9200] hover:bg-[#e6ffe6]'
     }
@@ -77,7 +77,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Posez votre question ici..."
-          className={`rounded-full pl-4 pr-12 py-6 border-none shadow-none ${themeColors.inputBorder} bg-transparent`}
+          className={`rounded-full pl-4 pr-12 py-6 ${themeColors.inputBorder} bg-transparent shadow-none focus:shadow-none focus-visible:shadow-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0`}
           disabled={disabled}
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
