@@ -149,7 +149,7 @@
   .ticker-content {
     display: inline-block;
     white-space: nowrap;
-    padding-right: 300%;  /* Significantly increased padding to prevent empty spaces */
-    animation: ticker-right-to-left 120s linear infinite;  /* Doubled animation duration for much slower scrolling */
+    padding-right: 300%;
+    animation: ticker-right-to-left 120s linear infinite;
   }
 }

@@ -22,15 +22,17 @@ const Index = () => {
   // Initialize localStorage with default incidents if needed and load incidents
   useEffect(() => {
     initializeIncidentStorage();
-    setIncidents(loadIncidentsFromStorage());
-
-    // Set up an event listener for storage changes to update incidents when changed in Admin view
-    const handleStorageChange = () => {
+    
+    const updateIncidents = () => {
       setIncidents(loadIncidentsFromStorage());
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    // Set up an event listener for storage changes to update incidents when changed in Admin view
+    window.addEventListener('storage', updateIncidents);
+    
+    // Initial load and cleanup
+    updateIncidents();
+    return () => window.removeEventListener('storage', updateIncidents);
   }, []);
 
   const handleFirstMessage = () => {

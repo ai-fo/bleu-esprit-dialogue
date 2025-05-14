@@ -22,7 +22,20 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
     } else {
       setIncidents(loadIncidentsFromStorage());
     }
+    
+    // Listen for storage events to update incidents when changed in another tab/window
+    const handleStorageChange = () => {
+      if (!propIncidents) {
+        setIncidents(loadIncidentsFromStorage());
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [propIncidents]);
+
+  // Force re-render when incidents change by including a key
+  const tickerKey = JSON.stringify(incidents);
 
   const themeColors = {
     user: {
@@ -34,9 +47,9 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
       dotBg: 'bg-[#ea384c]'
     },
     technician: {
-      bg: 'bg-[#fff0e6]/80', // Changed from green to orange
-      border: 'border-[#F97316]/10', // Changed from green to orange
-      text: 'text-[#F97316]/80', // Changed from green to orange
+      bg: 'bg-[#fff0e6]/80', 
+      border: 'border-[#F97316]/10',
+      text: 'text-[#F97316]/80', 
       alertBg: 'bg-[#ea384c]/10',
       alertText: 'text-[#ea384c]/90',
       dotBg: 'bg-[#ea384c]'
@@ -50,9 +63,10 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
 
   // Default message when no active incidents
   const defaultMessage = {
+    id: "system-no-incidents",
     name: "Système",
     message: "Aucun incident actif",
-    status: "incident"
+    status: "incident" as const
   };
 
   // Use default message if no active incidents
@@ -60,14 +74,14 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   
   // Create many more repetitions to ensure the ticker never shows empty space
   // Significantly increased repetitions to ensure continuous content
-  const repeatedIncidents = Array(20).fill(displayIncidents).flat();
+  const repeatedIncidents = Array(30).fill(displayIncidents).flat();
 
   return (
     <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden fixed bottom-0 left-0 right-0 w-full z-50`}>
       <div className="overflow-hidden relative w-full">
-        <div className="ticker-content whitespace-nowrap">
+        <div key={tickerKey} className="ticker-content whitespace-nowrap">
           {repeatedIncidents.map((incident, index) => (
-            <span key={index} className="inline-block mx-4 text-sm font-medium">
+            <span key={`${incident.id}-${index}`} className="inline-block mx-4 text-sm font-medium">
               <span className="inline-flex items-center">
                 <span className={`h-1.5 w-1.5 rounded-full ${colors.dotBg} mr-2 animate-pulse`}></span>
                 <span className={`${colors.alertText} mr-1`}>{incident.name}:</span>

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { waitTimeInfo } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
 import IncidentManager from '@/components/IncidentManager';
 import { Clock } from 'lucide-react';
-import { loadIncidentsFromStorage, initializeIncidentStorage } from '@/utils/incidentStorage';
+import { loadIncidentsFromStorage, initializeIncidentStorage, saveIncidentsToStorage } from '@/utils/incidentStorage';
 
 // Trending questions for admin view
 const ADMIN_TRENDING_QUESTIONS = ["Comment résoudre les problèmes avec Artis?", "Problèmes fréquents avec SAS", "Guide de dépannage rapide"];
@@ -29,6 +28,9 @@ const AdminView = () => {
   
   const handleIncidentStatusChange = (updatedIncidents) => {
     setManagedIncidents(updatedIncidents);
+    saveIncidentsToStorage(updatedIncidents);
+    // Dispatch custom event for cross-tab communication
+    window.dispatchEvent(new Event('storage'));
   };
   
   const handleFirstMessage = () => {
