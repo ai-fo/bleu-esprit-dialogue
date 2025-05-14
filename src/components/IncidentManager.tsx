@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -18,7 +19,7 @@ const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncident
   // Update checkbox state when an incident's status is changed
   const handleIncidentStatusChange = (id: string, isIncident: boolean) => {
     const updatedIncidents = localIncidents.map(incident => 
-      incident.id === id ? { ...incident, status: isIncident ? 'incident' : 'ok' } : incident
+      incident.id === id ? { ...incident, status: isIncident ? 'incident' as const : 'ok' as const } : incident
     );
     setLocalIncidents(updatedIncidents);
   };
