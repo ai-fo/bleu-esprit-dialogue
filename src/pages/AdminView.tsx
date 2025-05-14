@@ -161,6 +161,14 @@ const AdminView = () => {
               Vue Utilisateur
             </Button>
             
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/cockpit'} 
+              className="border-[#F97316] text-[#F97316] hover:bg-[#F97316]/10"
+            >
+              Cockpit
+            </Button>
+            
             {/* Wait time info */}
             <div className="flex items-center">
               <div className="flex items-center gap-2 bg-[#FEC6A1] rounded-full px-3 py-1 shadow-sm border border-[#F97316]">

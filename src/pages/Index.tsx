@@ -124,9 +124,9 @@ const Index = () => {
               <div className="w-8 h-8 flex-shrink-0 animate-scale-in">
                 <img 
                   ref={logoRef} 
-                  src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
                   alt="Oskour Logo" 
                   className="w-full h-full object-contain transition-transform duration-200 ease-out" 
+                  src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
                 />
               </div>
             )}
@@ -156,6 +156,14 @@ const Index = () => {
               className="border-[#004c92] text-[#004c92] hover:bg-[#004c92]/10"
             >
               Vue Admin
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/cockpit'} 
+              className="border-[#004c92] text-[#004c92] hover:bg-[#004c92]/10"
+            >
+              Cockpit
             </Button>
             
             {/* Wait time info */}
