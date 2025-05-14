@@ -58,7 +58,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center w-full gap-2">
+    <form onSubmit={handleSubmit} className="flex items-center w-full gap-2 px-3 py-2">
       {showTrendingIcon && (
         <Button
           type="button"
@@ -77,15 +77,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Posez votre question ici..."
-          className={`rounded-full pl-4 pr-12 py-6 shadow-sm ${themeColors.inputBorder} bg-transparent`}
+          className={`rounded-full pl-4 pr-12 py-6 border-none shadow-none ${themeColors.inputBorder} bg-transparent`}
           disabled={disabled}
         />
-        <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
           <Button
             type="submit"
             size="icon"
             disabled={!message.trim() || disabled}
-            className={`rounded-full h-8 w-8 bg-[${themeColors.primary}] ${themeColors.buttonHover}`}
+            className={`rounded-full h-10 w-10 bg-[${themeColors.primary}] ${themeColors.buttonHover}`}
           >
             <Send className="h-4 w-4 text-white" />
           </Button>

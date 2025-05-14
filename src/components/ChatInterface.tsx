@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatMessage, { ChatMessageProps } from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -221,9 +220,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
           </ScrollArea>
 
-          <div className={`bg-transparent p-4 pb-0 sticky bottom-0 w-full`}>
-            <div className="max-w-3xl mx-auto w-full relative">
-              <div className={`p-3 rounded-xl backdrop-blur-md shadow-lg bg-white/80 border border-${theme === 'user' ? 'blue' : 'green'}-100`}>
+          {/* Chat input container that spans full width */}
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-4 max-w-7xl mx-auto">
+            <div className="relative w-full max-w-4xl mx-auto">
+              <div className="rounded-full shadow-md bg-white border border-gray-100">
                 <ChatInput 
                   onSendMessage={handleSendMessage} 
                   disabled={loading} 
@@ -236,8 +236,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               
               {/* Trending Questions Dropdown for conversation mode */}
               {showTrendingQuestions && (
-                <div className={`absolute bottom-full mb-3 w-full bg-white rounded-lg shadow-lg border border-[${themeColors.light}] overflow-hidden`}>
-                  <div className={`flex items-center gap-2 p-3 border-b border-[${themeColors.light}]`}>
+                <div className="absolute bottom-full mb-3 w-full bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden z-10">
+                  <div className="flex items-center gap-2 p-3 border-b border-gray-100">
                     <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
                     <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>Questions tendance aujourd'hui</h3>
                   </div>
@@ -290,8 +290,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
             
             {/* Barre de recherche centrée et élargie */}
-            <div className="w-full max-w-3xl mx-auto px-2 relative">
-              <div className={`p-3 rounded-xl backdrop-blur-md shadow-lg bg-white/80 border border-${theme === 'user' ? 'blue' : 'green'}-100`}>
+            <div className="w-full max-w-4xl mx-auto px-4 relative">
+              <div className="rounded-full shadow-md bg-white border border-gray-100">
                 <ChatInput 
                   onSendMessage={handleSendMessage} 
                   disabled={loading} 
@@ -304,8 +304,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               
               {/* Trending Questions Dropdown */}
               {showTrendingQuestions && (
-                <div className={`absolute z-10 mt-3 w-full bg-white rounded-lg shadow-lg border border-[${themeColors.light}] overflow-hidden`}>
-                  <div className={`flex items-center gap-2 p-3 border-b border-[${themeColors.light}]`}>
+                <div className="absolute z-10 mt-3 w-full bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="flex items-center gap-2 p-3 border-b border-gray-100">
                     <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
                     <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>Questions tendance aujourd'hui</h3>
                   </div>
