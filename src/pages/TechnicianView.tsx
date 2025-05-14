@@ -9,18 +9,19 @@ import { waitTimeInfo } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
 import { Clock } from 'lucide-react';
 
-// Trending questions without having to access them from ChatInterface
-const TRENDING_QUESTIONS = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"];
-const Index = () => {
+// Trending questions for technician view
+const TECHNICIAN_TRENDING_QUESTIONS = ["Comment résoudre les problèmes avec Artis?", "Problèmes fréquents avec SAS", "Guide de dépannage rapide"];
+
+const TechnicianView = () => {
   const [isAnimated, setIsAnimated] = useState(false);
   const [chatKey, setChatKey] = useState(0);
   const logoRef = useRef(null);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  
   const handleFirstMessage = () => {
     setIsAnimated(true);
   };
+  
   const handleNewChat = async () => {
     try {
       await clearConversation();
@@ -74,11 +75,13 @@ const Index = () => {
         logo.style.transform = 'perspective(500px) rotateX(0deg) rotateY(0deg)';
       }, 200); // Reset after 200ms of no movement
     };
+    
     window.addEventListener('mousemove', e => {
       handleMouseMove(e);
       handleMouseStop();
     });
     window.addEventListener('mouseleave', handleMouseLeave);
+    
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
@@ -87,7 +90,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-[#e6f0ff]/80">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#f0ffe6]/80">
       <div className="pt-2 pb-1 px-6">
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-4">
@@ -103,8 +106,8 @@ const Index = () => {
               </div>
             )}
             <div className="flex items-center">
-              <h1 className="text-xl sm:text-2xl font-bold text-[#004c92] transition-all duration-500 cursor-pointer">
-                Oskour
+              <h1 className="text-xl sm:text-2xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer">
+                Oskour Technicien
               </h1>
               
               {/* Refresh button - positioned next to the title when in chat mode */}
@@ -112,11 +115,11 @@ const Index = () => {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="rounded-full hover:bg-[#E6F0FF]/50 h-8 w-8 ml-2" 
+                  className="rounded-full hover:bg-[#E6FFE6]/50 h-8 w-8 ml-2" 
                   onClick={handleNewChat} 
                   title="Nouvelle conversation"
                 >
-                  <RefreshCw className="h-4 w-4 text-[#004c92]" />
+                  <RefreshCw className="h-4 w-4 text-[#4c9200]" />
                 </Button>
               )}
             </div>
@@ -125,15 +128,15 @@ const Index = () => {
           <div className="flex items-center gap-4">
             <Button 
               variant="outline" 
-              onClick={() => window.location.href = '/technician'} 
-              className="border-[#004c92] text-[#004c92] hover:bg-[#004c92]/10"
+              onClick={() => window.location.href = '/'} 
+              className="border-[#4c9200] text-[#4c9200] hover:bg-[#4c9200]/10"
             >
-              Vue Technicien
+              Vue Utilisateur
             </Button>
             
             {/* Wait time info in the top right */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 bg-[#0a5db3] rounded-full px-3 py-1 shadow-sm border border-[#1a6dc3]">
+              <div className="flex items-center gap-2 bg-[#0ab35d] rounded-full px-3 py-1 shadow-sm border border-[#1ac36d]">
                 <Clock className="h-3 w-3 text-[#ea384c]" />
                 <span className="text-xs text-white font-medium">~{waitTimeInfo.minutes} min d'attente</span>
                 <span className="text-xs text-white/80">{waitTimeInfo.callers} appelants</span>
@@ -149,21 +152,21 @@ const Index = () => {
           {/* Chat interface */}
           <div className="flex flex-col h-full w-full transition-all duration-500">
             <ChatInterface 
-              key={`user-${chatKey}`} 
-              chatbotName="Bill" 
-              initialMessage="Bonjour ! Je suis Bill, votre assistant personnel. Comment puis-je vous aider aujourd'hui ?" 
+              key={`technician-${chatKey}`} 
+              chatbotName="Charles" 
+              initialMessage="Bonjour ! Je suis Charles, votre assistant technicien. Comment puis-je vous aider aujourd'hui ?" 
               onFirstMessage={handleFirstMessage} 
-              trendingQuestions={TRENDING_QUESTIONS}
-              theme="user" 
+              trendingQuestions={TECHNICIAN_TRENDING_QUESTIONS}
+              theme="technician"
             />
           </div>
         </div>
       </main>
       
       {/* Incident ticker placed at the bottom of the page */}
-      <IncidentTicker theme="user" />
+      <IncidentTicker theme="technician" />
     </div>
   );
 };
 
-export default Index;
+export default TechnicianView;
