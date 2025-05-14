@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -60,7 +61,7 @@ const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncident
           <span>Incidents ({incidentCount})</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-80 p-0 bg-white" align="end">
+      <DropdownMenuContent className="w-80 p-0 bg-white z-50" align="end">
         <div className="px-3 py-2 border-b border-[#4c9200]/10">
           <h3 className="text-[#4c9200] text-sm font-medium">Gestion des Incidents</h3>
         </div>
@@ -75,7 +76,9 @@ const IncidentManager: React.FC<IncidentManagerProps> = ({ incidents, onIncident
                   className="border-[#4c9200]"
                 />
                 <div className="flex items-center gap-2 flex-1">
-                  <span className="text-[#4c9200]">{app.icon}</span>
+                  {app.icon && (
+                    <span className="text-[#4c9200]">{app.icon}</span>
+                  )}
                   <Label 
                     htmlFor={`incident-${app.id}`}
                     className="text-sm font-medium cursor-pointer"
