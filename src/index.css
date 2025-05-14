@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -123,37 +122,32 @@
     display: none;
   }
 
-  /* Ticker animation with constant speed regardless of content length */
-  @keyframes ticker {
+  /* Completely redesigned ticker animation with fixed speed */
+  .ticker-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .ticker-content {
+    display: inline-flex !important;
+    white-space: nowrap !important;
+    animation: ticker-move 30s linear infinite !important;
+    will-change: transform !important;
+    padding-right: 50px !important;
+  }
+
+  .ticker-item {
+    flex-shrink: 0;
+    padding: 0 20px;
+  }
+
+  @keyframes ticker-move {
     0% {
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-50%);
-    }
-  }
-
-  /* Fixed speed animation that doesn't depend on content width */
-  @keyframes ticker-right-to-left {
-    0% {
-      transform: translateX(0%);
-    }
-    100% {
       transform: translateX(-100%);
     }
-  }
-
-  .animate-ticker {
-    animation: ticker 30s linear infinite;
-  }
-  
-  .ticker-content {
-    display: inline-block !important;
-    white-space: nowrap !important;
-    padding-right: 100% !important;
-    /* Fixed duration animation to ensure consistent speed */
-    animation: ticker-right-to-left 30s linear infinite !important;
-    will-change: transform !important;
-    animation-delay: 0s !important;
   }
 }

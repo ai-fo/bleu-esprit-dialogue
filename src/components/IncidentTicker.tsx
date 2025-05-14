@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useRef } from 'react';
 import { appIncidents } from './IncidentStatus';
 import { loadIncidentsFromStorage } from '@/utils/incidentStorage';
 import { AppIncident } from './IncidentStatus';
@@ -15,6 +16,7 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   const [incidents, setIncidents] = useState<AppIncident[]>(propIncidents || loadIncidentsFromStorage());
   const [tickerKey, setTickerKey] = useState(Date.now().toString());
   const [isVisible, setIsVisible] = useState(true);
+  const tickerRef = useRef<HTMLDivElement>(null);
 
   // Update incidents if provided via props or when localStorage changes
   useEffect(() => {
@@ -60,6 +62,18 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
     }
   }, [propIncidents]);
 
+  // Duplicate the incident content to ensure seamless looping
+  useEffect(() => {
+    if (tickerRef.current && tickerRef.current.firstChild) {
+      const tickerContent = tickerRef.current.firstChild as HTMLElement;
+      
+      // Reset animation if needed
+      tickerContent.style.animation = 'none';
+      tickerContent.offsetHeight; // Trigger reflow
+      tickerContent.style.animation = '';
+    }
+  }, [incidents, tickerKey]);
+
   const themeColors = {
     user: {
       bg: 'bg-[#e6f0ff]/80',
@@ -95,28 +109,28 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   // Use default message if no active incidents
   const displayIncidents = activeIncidents.length === 0 ? [defaultMessage] : activeIncidents;
   
-  // Always use a fixed number of repetitions to keep animation speed consistent
-  // No matter how many incidents there are, we'll maintain a constant number of items
-  const repeatedIncidents = Array(5).fill(displayIncidents).flat();
-
   console.log('Rendering ticker with incidents:', displayIncidents);
   console.log('Current tickerKey:', tickerKey);
 
   if (!isVisible) return null;
 
+  // Create incident items
+  const createIncidentItem = (incident: AppIncident, index: number) => (
+    <div key={`${incident.id}-${index}-${tickerKey}`} className="ticker-item inline-flex items-center">
+      <span className={`h-1.5 w-1.5 rounded-full ${colors.dotBg} mr-2 animate-pulse`}></span>
+      <span className={`${colors.alertText} mr-1`}>{incident.name}:</span>
+      <span className={colors.text}>Problème en cours</span>
+    </div>
+  );
+
   return (
     <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden fixed bottom-0 left-0 right-0 w-full z-50 incident-ticker-container`}>
-      <div className="overflow-hidden relative w-full">
-        <div key={tickerKey} className="ticker-content whitespace-nowrap">
-          {repeatedIncidents.map((incident, index) => (
-            <span key={`${incident.id}-${index}-${tickerKey}`} className="inline-block mx-4 text-sm font-medium">
-              <span className="inline-flex items-center">
-                <span className={`h-1.5 w-1.5 rounded-full ${colors.dotBg} mr-2 animate-pulse`}></span>
-                <span className={`${colors.alertText} mr-1`}>{incident.name}:</span>
-                <span className={colors.text}>Problème en cours</span>
-              </span>
-            </span>
-          ))}
+      <div ref={tickerRef} className="ticker-wrapper">
+        <div key={tickerKey} className="ticker-content">
+          {/* Generate primary content */}
+          {displayIncidents.map((incident, index) => createIncidentItem(incident, index))}
+          {/* Duplicate content to ensure seamless looping */}
+          {displayIncidents.map((incident, index) => createIncidentItem(incident, index + displayIncidents.length))}
         </div>
       </div>
     </div>
