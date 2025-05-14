@@ -58,11 +58,9 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   // Use default message if no active incidents
   const displayIncidents = activeIncidents.length === 0 ? [defaultMessage] : activeIncidents;
   
-  // Create multiple repetitions to ensure the ticker fills the space properly
-  // Many repetitions to create a more seamless continuous experience
-  const repeatedIncidents = [...displayIncidents, ...displayIncidents, ...displayIncidents, 
-                            ...displayIncidents, ...displayIncidents, ...displayIncidents,
-                            ...displayIncidents, ...displayIncidents, ...displayIncidents];
+  // Create many more repetitions to ensure the ticker never shows empty space
+  // Significantly increased repetitions to ensure continuous content
+  const repeatedIncidents = Array(20).fill(displayIncidents).flat();
 
   return (
     <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden fixed bottom-0 left-0 right-0 w-full z-50`}>

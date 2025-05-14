@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -148,7 +149,7 @@
   .ticker-content {
     display: inline-block;
     white-space: nowrap;
-    padding-right: 200%;  /* Increased padding for more space between repetitions */
-    animation: ticker-right-to-left 60s linear infinite;  /* Much slower animation for better readability */
+    padding-right: 300%;  /* Significantly increased padding to prevent empty spaces */
+    animation: ticker-right-to-left 120s linear infinite;  /* Doubled animation duration for much slower scrolling */
   }
 }
