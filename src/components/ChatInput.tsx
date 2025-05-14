@@ -33,10 +33,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
       trendingButton: 'text-[#004c92] hover:bg-[#e6f0ff]'
     },
     technician: {
-      primary: '#4c9200',
+      primary: '#F97316', // Changed from green to orange
       inputBorder: 'border-transparent focus-visible:border-transparent',
-      buttonHover: 'hover:bg-[#4c9200]/90',
-      trendingButton: 'text-[#4c9200] hover:bg-[#e6ffe6]'
+      buttonHover: 'hover:bg-[#F97316]/90', // Changed from green to orange
+      trendingButton: 'text-[#F97316] hover:bg-[#FFF0E0]' // Changed from green to orange
     }
   };
 

@@ -34,9 +34,9 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
       dotBg: 'bg-[#ea384c]'
     },
     technician: {
-      bg: 'bg-[#f0ffe6]/80',
-      border: 'border-[#4c9200]/10',
-      text: 'text-[#4c9200]/80',
+      bg: 'bg-[#fff0e6]/80', // Changed from green to orange
+      border: 'border-[#F97316]/10', // Changed from green to orange
+      text: 'text-[#F97316]/80', // Changed from green to orange
       alertBg: 'bg-[#ea384c]/10',
       alertText: 'text-[#ea384c]/90',
       dotBg: 'bg-[#ea384c]'

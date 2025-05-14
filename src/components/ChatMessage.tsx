@@ -26,11 +26,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, onNewChunkDisp
       assistantBorder: 'border-[#e6f0ff]'
     },
     technician: {
-      userBg: 'bg-[#4c9200]',
-      assistantBg: 'bg-[#f8fcf6]',
+      userBg: 'bg-[#F97316]', // Changed from green to orange
+      assistantBg: 'bg-[#fff8eb]', // Changed from green to orange
       userText: 'text-white',
       assistantText: 'text-[#1a1a1a]',
-      assistantBorder: 'border-[#e6ffe6]'
+      assistantBorder: 'border-[#fff0e0]' // Changed from green to orange
     }
   };
 
