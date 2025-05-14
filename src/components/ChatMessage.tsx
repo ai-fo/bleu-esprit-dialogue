@@ -39,7 +39,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, onNewChunkDisp
   return (
     <div
       className={cn(
-        'px-4 sm:px-6 lg:px-8 mb-4 flex w-full max-w-full flex-col',
+        'mb-4 flex w-full max-w-full flex-col',
         isUser ? 'items-end' : 'items-start'
       )}
     >

@@ -207,7 +207,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {!isInitialState && (
         <div className="flex-1 overflow-hidden flex flex-col h-full">
           <ScrollArea ref={scrollAreaRef} className="flex-1">
-            <div className="flex flex-col py-5">
+            <div className="flex flex-col py-5 max-w-3xl mx-auto w-full">
               {messages.map((message, index) => (
                 <ChatMessage 
                   key={index} 
@@ -221,48 +221,46 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </ScrollArea>
 
           {/* Chat input container aligned with messages */}
-          <div className="border-t border-gray-100 bg-white">
-            <div className="max-w-7xl mx-auto w-full">
-              <div className="px-4 sm:px-6 lg:px-8 py-4">
-                <div className="relative w-full">
-                  <div className="rounded-full shadow-sm bg-white border border-gray-200">
-                    <ChatInput 
-                      onSendMessage={handleSendMessage} 
-                      disabled={loading} 
-                      getInputRef={setInputRef} 
-                      onTrendingClick={toggleTrendingQuestions} 
-                      showTrendingIcon={true} 
-                      theme={theme}
-                    />
-                  </div>
-                  
-                  {/* Trending Questions Dropdown for conversation mode */}
-                  {showTrendingQuestions && (
-                    <div className="absolute bottom-full mb-3 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-10">
-                      <div className="flex items-center gap-2 p-3 border-b border-gray-100">
-                        <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
-                        <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>Questions tendance aujourd'hui</h3>
-                      </div>
-                      <div className="p-3">
-                        {trendingQuestions.map((question, index) => (
-                          <button 
-                            key={index} 
-                            onClick={() => {
-                              handleSendMessage(question);
-                              setShowTrendingQuestions(false);
-                            }} 
-                            className={`w-full flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg my-1.5 border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group`}
-                          >
-                            <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
-                              {index + 1}
-                            </span>
-                            <span className="flex-1">{question}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+          <div className="border-t border-gray-100">
+            <div className="max-w-3xl mx-auto w-full">
+              <div className="py-4">
+                <div className="relative w-full rounded-full shadow-sm bg-white border border-gray-200 mx-auto">
+                  <ChatInput 
+                    onSendMessage={handleSendMessage} 
+                    disabled={loading} 
+                    getInputRef={setInputRef} 
+                    onTrendingClick={toggleTrendingQuestions} 
+                    showTrendingIcon={true} 
+                    theme={theme}
+                  />
                 </div>
+                
+                {/* Trending Questions Dropdown for conversation mode */}
+                {showTrendingQuestions && (
+                  <div className="absolute bottom-full mb-3 w-full max-w-3xl bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-10">
+                    <div className="flex items-center gap-2 p-3 border-b border-gray-100">
+                      <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
+                      <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>Questions tendance aujourd'hui</h3>
+                    </div>
+                    <div className="p-3">
+                      {trendingQuestions.map((question, index) => (
+                        <button 
+                          key={index} 
+                          onClick={() => {
+                            handleSendMessage(question);
+                            setShowTrendingQuestions(false);
+                          }} 
+                          className={`w-full flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg my-1.5 border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group`}
+                        >
+                          <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
+                            {index + 1}
+                          </span>
+                          <span className="flex-1">{question}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -294,7 +292,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
             
             {/* Barre de recherche centrée et élargie */}
-            <div className="w-full max-w-4xl mx-auto px-4 relative">
+            <div className="w-full max-w-xl mx-auto px-4 relative">
               <div className="rounded-full shadow-sm bg-white border border-gray-200">
                 <ChatInput 
                   onSendMessage={handleSendMessage} 
