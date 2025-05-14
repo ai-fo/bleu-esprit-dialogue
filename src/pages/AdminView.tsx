@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const AdminView = () => {
   const logoRef = useRef(null);
   const { toast } = useToast();
   const [managedIncidents, setManagedIncidents] = useState(loadIncidentsFromStorage());
+  const [tickerUpdateKey, setTickerUpdateKey] = useState(Date.now());
   
   // Initialize localStorage with default incidents if needed
   useEffect(() => {
@@ -27,10 +29,14 @@ const AdminView = () => {
   }, []);
   
   const handleIncidentStatusChange = (updatedIncidents) => {
+    console.log('Updating incidents in AdminView:', updatedIncidents);
     setManagedIncidents(updatedIncidents);
     saveIncidentsToStorage(updatedIncidents);
+    setTickerUpdateKey(Date.now()); // Force ticker update
+    
     // Dispatch custom event for cross-tab communication
-    window.dispatchEvent(new Event('storage'));
+    const incidentUpdateEvent = new Event('incident-update');
+    window.dispatchEvent(incidentUpdateEvent);
   };
   
   const handleFirstMessage = () => {
@@ -186,7 +192,11 @@ const AdminView = () => {
       </main>
       
       {/* Incident ticker placed at the bottom of the page */}
-      <IncidentTicker theme="technician" incidents={managedIncidents} />
+      <IncidentTicker 
+        key={`ticker-${tickerUpdateKey}`} 
+        theme="technician" 
+        incidents={managedIncidents} 
+      />
     </div>
   );
 };

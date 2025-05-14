@@ -123,7 +123,7 @@
     display: none;
   }
 
-  /* Ticker animation */
+  /* Enhanced ticker animation */
   @keyframes ticker {
     0% {
       transform: translateX(0);
@@ -143,13 +143,14 @@
   }
 
   .animate-ticker {
-    animation: ticker 20s linear infinite;
+    animation: ticker 30s linear infinite;
   }
   
   .ticker-content {
-    display: inline-block;
-    white-space: nowrap;
-    padding-right: 300%;
-    animation: ticker-right-to-left 120s linear infinite;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    padding-right: 300% !important;
+    animation: ticker-right-to-left 120s linear infinite !important;
+    will-change: transform !important;
   }
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -18,26 +19,34 @@ const Index = () => {
   const logoRef = useRef(null);
   const { toast } = useToast();
   const [incidents, setIncidents] = useState(loadIncidentsFromStorage());
+  const [tickerUpdateKey, setTickerUpdateKey] = useState(Date.now());
 
   // Initialize localStorage with default incidents if needed and load incidents
   useEffect(() => {
     initializeIncidentStorage();
     
     const updateIncidents = () => {
+      console.log('Updating incidents in Index view');
       setIncidents(loadIncidentsFromStorage());
+      setTickerUpdateKey(Date.now()); // Force ticker update
     };
 
-    // Set up an event listener for storage changes to update incidents when changed in Admin view
+    // Set up event listeners for storage changes and custom incident updates
     window.addEventListener('storage', updateIncidents);
+    window.addEventListener('incident-update', updateIncidents);
     
     // Initial load and cleanup
     updateIncidents();
-    return () => window.removeEventListener('storage', updateIncidents);
+    return () => {
+      window.removeEventListener('storage', updateIncidents);
+      window.removeEventListener('incident-update', updateIncidents);
+    };
   }, []);
 
   const handleFirstMessage = () => {
     setIsAnimated(true);
   };
+  
   const handleNewChat = async () => {
     try {
       await clearConversation();
@@ -179,7 +188,11 @@ const Index = () => {
       </main>
       
       {/* Incident ticker placed at the bottom of the page */}
-      <IncidentTicker theme="user" incidents={incidents} />
+      <IncidentTicker 
+        key={`ticker-${tickerUpdateKey}`} 
+        theme="user" 
+        incidents={incidents} 
+      />
     </div>
   );
 };

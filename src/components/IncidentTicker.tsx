@@ -14,28 +14,43 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   incidents: propIncidents
 }) => {
   const [incidents, setIncidents] = useState<AppIncident[]>(propIncidents || loadIncidentsFromStorage());
+  const [tickerKey, setTickerKey] = useState(Date.now().toString());
 
   // Update incidents if provided via props or when localStorage changes
   useEffect(() => {
     if (propIncidents) {
       setIncidents(propIncidents);
+      setTickerKey(Date.now().toString()); // Force re-render with new timestamp
     } else {
       setIncidents(loadIncidentsFromStorage());
+      setTickerKey(Date.now().toString()); // Force re-render with new timestamp
     }
     
     // Listen for storage events to update incidents when changed in another tab/window
     const handleStorageChange = () => {
       if (!propIncidents) {
         setIncidents(loadIncidentsFromStorage());
+        setTickerKey(Date.now().toString()); // Force re-render with new timestamp
       }
     };
     
+    // Listen for both storage events and our custom incident-update event
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('incident-update', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('incident-update', handleStorageChange);
+    };
   }, [propIncidents]);
 
-  // Force re-render when incidents change by including a key
-  const tickerKey = JSON.stringify(incidents);
+  // Update when props change
+  useEffect(() => {
+    if (propIncidents) {
+      setIncidents(propIncidents);
+      setTickerKey(Date.now().toString());
+    }
+  }, [propIncidents]);
 
   const themeColors = {
     user: {
@@ -73,15 +88,17 @@ const IncidentTicker: React.FC<IncidentTickerProps> = ({
   const displayIncidents = activeIncidents.length === 0 ? [defaultMessage] : activeIncidents;
   
   // Create many more repetitions to ensure the ticker never shows empty space
-  // Significantly increased repetitions to ensure continuous content
   const repeatedIncidents = Array(30).fill(displayIncidents).flat();
 
+  console.log('Rendering ticker with incidents:', displayIncidents);
+  console.log('Current tickerKey:', tickerKey);
+
   return (
-    <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden fixed bottom-0 left-0 right-0 w-full z-50`}>
+    <div className={`py-2 ${colors.bg} border-t ${colors.border} overflow-hidden fixed bottom-0 left-0 right-0 w-full z-50 incident-ticker-container`}>
       <div className="overflow-hidden relative w-full">
         <div key={tickerKey} className="ticker-content whitespace-nowrap">
           {repeatedIncidents.map((incident, index) => (
-            <span key={`${incident.id}-${index}`} className="inline-block mx-4 text-sm font-medium">
+            <span key={`${incident.id}-${index}-${tickerKey}`} className="inline-block mx-4 text-sm font-medium">
               <span className="inline-flex items-center">
                 <span className={`h-1.5 w-1.5 rounded-full ${colors.dotBg} mr-2 animate-pulse`}></span>
                 <span className={`${colors.alertText} mr-1`}>{incident.name}:</span>
