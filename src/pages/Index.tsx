@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -126,10 +125,10 @@ const Index = () => {
           <div className="flex items-center gap-3 sm:gap-4">
             <Button 
               variant="outline" 
-              onClick={() => window.location.href = '/technician'} 
+              onClick={() => window.location.href = '/admin'} 
               className="border-[#004c92] text-[#004c92] hover:bg-[#004c92]/10"
             >
-              Vue Technicien
+              Vue Admin
             </Button>
             
             {/* Wait time info */}
