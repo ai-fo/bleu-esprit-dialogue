@@ -126,7 +126,14 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Removed incident dropdown from here */}
+          {/* Wait time info in the top right */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-[#0a5db3] rounded-full px-3 py-1 shadow-sm border border-[#1a6dc3]">
+              <Clock className="h-3 w-3 text-[#ea384c]" />
+              <span className="text-xs text-white font-medium">~{waitTimeInfo.minutes} min d'attente</span>
+              <span className="text-xs text-white/80">{waitTimeInfo.callers} appelants</span>
+            </div>
+          </div>
         </div>
       </header>
       
@@ -148,15 +155,6 @@ const Index = () => {
       
       {/* Incident ticker */}
       <IncidentTicker />
-
-      {/* Footer section - hotline banner */}
-      <footer className="py-2 bg-[#004c92] text-white flex items-center justify-center gap-3 shadow-md">
-        <p className="font-medium">Si l'IA prends le contrôle, contactez vite la hotline au <span className="text-[#ea384c] font-bold">3400</span></p>
-        <div className="flex items-center gap-2 bg-[#0a5db3] rounded-full px-3 py-0.5 shadow-sm border border-[#1a6dc3]">
-          <Clock className="h-3 w-3 text-[#ea384c]" />
-          <span className="text-xs text-white font-medium">~{waitTimeInfo.minutes} min d'attente</span>
-        </div>
-      </footer>
     </div>;
 };
 
