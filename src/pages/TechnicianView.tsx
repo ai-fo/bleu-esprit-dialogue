@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -93,8 +94,8 @@ const TechnicianView = () => {
       {/* Header */}
       <header className="pt-2 pb-1 px-4 sm:px-6 lg:px-8 border-b border-[#4c9200]/10">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          {/* Logo and title - now fully left aligned with larger font size */}
-          <div className="flex items-center">
+          {/* Logo and title - fully left aligned with large font size */}
+          <div className="flex items-center pl-0">
             {/* Logo shown only in chat mode */}
             {isAnimated && (
               <div className="w-8 h-8 flex-shrink-0 animate-scale-in">
@@ -106,7 +107,7 @@ const TechnicianView = () => {
                 />
               </div>
             )}
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer mx-2">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[#4c9200] transition-all duration-500 cursor-pointer ml-0 mr-2">
               Oskour Technicien
             </h1>
             
