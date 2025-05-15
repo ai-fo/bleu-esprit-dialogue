@@ -12,3 +12,4 @@ python-multipart
 FlagEmbedding
 sentence-transformers
 xformers
+httpx>=0.24.0

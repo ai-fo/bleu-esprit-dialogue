@@ -167,14 +167,55 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       // Remove loading message
       setLoadingMessage(null);
       
-      // Add bot response
-      const botResponse: ChatMessageProps = {
+      // Ajouter d'abord la réponse principale sans les documents
+      const initialResponse = response.answer.split(/\n\nSi tu veux plus d'informations/)[0];
+      const documentPart = response.answer.includes("\n\nSi tu veux plus d'informations") 
+        ? response.answer.split(/\n\nSi tu veux plus d'informations/)[1]
+        : "";
+        
+      // Afficher d'abord la réponse principale
+      const initialBotResponse: ChatMessageProps = {
         role: 'assistant',
-        content: response.answer
+        content: initialResponse
       };
-      setMessages(prev => [...prev, botResponse]);
-      // Scroll after adding the bot response
+      setMessages(prev => [...prev, initialBotResponse]);
+      
+      // Scroller après avoir ajouté la réponse principale
       setTimeout(scrollToBottom, 100);
+      
+      // Si des documents sont mentionnés, ajouter une indication de recherche
+      if (documentPart) {
+        // Ajouter un message de chargement pour la recherche de documents
+        const docsLoadingMsg: ChatMessageProps = {
+          role: 'assistant',
+          content: 'Recherche de documents pertinents...',
+          isLoading: true
+        };
+        setMessages(prev => [...prev, docsLoadingMsg]);
+        
+        // Scroller après avoir ajouté l'indicateur de chargement
+        setTimeout(scrollToBottom, 100);
+        
+        // Attendre un peu pour montrer que le système "cherche" les documents
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Retirer le message de chargement
+        setMessages(prev => prev.filter(msg => msg !== docsLoadingMsg));
+        
+        // Mettre à jour le message principal pour inclure la partie concernant les documents
+        setMessages(prev => {
+          const updatedMessages = [...prev];
+          const lastMessage = updatedMessages[updatedMessages.length - 1];
+          updatedMessages[updatedMessages.length - 1] = {
+            ...lastMessage,
+            content: response.answer
+          };
+          return updatedMessages;
+        });
+        
+        // Scroller après avoir mis à jour le message
+        setTimeout(scrollToBottom, 100);
+      }
     } catch (error) {
       // Remove loading message in case of error
       setLoadingMessage(null);

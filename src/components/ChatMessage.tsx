@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import FeedbackButtons from './FeedbackButtons';
 import ReliabilityIndicator from './ReliabilityIndicator';
+import ReactMarkdown from 'react-markdown';
 
 export interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -30,18 +30,55 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
       assistantBg: 'bg-[#f6f8fc]',
       userText: 'text-white',
       assistantText: 'text-[#1a1a1a]',
-      assistantBorder: 'border-[#e6f0ff]'
+      assistantBorder: 'border-[#e6f0ff]',
+      assistantLink: 'text-[#004c92] font-medium underline hover:text-[#0060b6]'
     },
     technician: {
       userBg: 'bg-[#F97316]', // Changed from green to orange
       assistantBg: 'bg-[#fff8eb]', // Changed from green to orange
       userText: 'text-white',
       assistantText: 'text-[#1a1a1a]',
-      assistantBorder: 'border-[#fff0e0]' // Changed from green to orange
+      assistantBorder: 'border-[#fff0e0]', // Changed from green to orange
+      assistantLink: 'text-[#F97316] font-medium underline hover:text-[#e05e00]'
     }
   };
 
   const themeColors = colors[theme];
+
+  // Fonction pour transformer le texte avec des URLs en contenu cliquable
+  const renderContentWithLinks = () => {
+    if (isLoading) {
+      return (
+        <>
+          {content}
+          <span className="inline-flex items-center ml-2">
+            <span className="w-2 h-2 rounded-full bg-current opacity-60 animate-bounce"></span>
+            <span className="w-2 h-2 rounded-full bg-current opacity-80 animate-bounce mx-1" style={{ animationDelay: '0.2s' }}></span>
+            <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+          </span>
+        </>
+      );
+    }
+
+    return (
+      <ReactMarkdown
+        components={{
+          a: ({ node, ...props }) => (
+            <a 
+              {...props} 
+              className={isUser ? 'text-white underline' : themeColors.assistantLink}
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ),
+          p: ({ node, ...props }) => <p {...props} className="mb-2" />
+        }}
+      >
+        {content.replace(/(http:\/\/\S+)/g, '[$1]($1)')}
+      </ReactMarkdown>
+    );
+  };
 
   return (
     <div
@@ -59,14 +96,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
         )}
       >
         <div className="prose prose-sm max-w-none text-base"> 
-          {content}
-          {isLoading && (
-            <span className="inline-flex items-center ml-2">
-              <span className="w-2 h-2 rounded-full bg-current opacity-60 animate-bounce"></span>
-              <span className="w-2 h-2 rounded-full bg-current opacity-80 animate-bounce mx-1" style={{ animationDelay: '0.2s' }}></span>
-              <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0.4s' }}></span>
-            </span>
-          )}
+          {renderContentWithLinks()}
         </div>
       </div>
 
