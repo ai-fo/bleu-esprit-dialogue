@@ -173,31 +173,17 @@ def chat_endpoint(req: ChatRequest):
     # Vérifier si nous devons ajouter des liens de documents
     start_doc_check = time.time()
     if is_technical_question and files:
-        # Demander au LLM si les documents ont réellement été utiles pour répondre à la question
-        verification_messages = [
-            {"role": "system", "content": "Tu es un assistant expert chargé d'évaluer si les documents fournis ont été utilisés pour répondre à la question. Ne considère PAS le format ou la structure de la question mais seulement son contenu sémantique. Réponds uniquement par 'OUI' si tu détectes une correspondance entre la question et le document, même si la formulation est différente. Une question simple qui mentionne un sujet contenu dans le document doit être considérée comme pertinente. Réponds 'NON' uniquement pour les questions de salutation pure comme 'bonjour' ou 'comment ça va'."},
-            {"role": "user", "content": f"Question de l'utilisateur: \"{req.question}\"\n\nRéponse générée: \"{answer}\"\n\nDocuments utilisés et leur contenu:\n{context}\n\nÉvaluation: Le document contient-il des informations pertinentes pour cette question précise, même si la question est simple ou ne contient qu'une mention du sujet? Si le document contient des informations sur le sujet mentionné dans la question, réponds 'OUI', même si la question est courte ou peu détaillée."}
+        # Approche directe basée sur la correspondance de mots-clés
+        keywords_messages = [
+            {"role": "system", "content": "Tu es un assistant qui détermine si un document contient des informations sur les sujets mentionnés dans une question. Réponds uniquement par 'OUI' ou 'NON'."},
+            {"role": "user", "content": f"Quels sont les mots-clés ou concepts principaux dans cette question: \"{req.question}\"? Puis vérifie si ces mots-clés apparaissent dans le document suivant:\n\n{context}\n\nSi au moins un mot-clé ou concept important de la question apparaît dans le document, réponds 'OUI', sinon réponds 'NON'."}
         ]
         
-        verification_resp = get_chat_completion(req.model, verification_messages, max_tokens=100)
+        verification_resp = get_chat_completion(req.model, keywords_messages, max_tokens=100)
         verification_text = verification_resp['choices'][0]['message']['content'].upper()
         documents_are_relevant = "OUI" in verification_text
+        logger.info(f"Vérification de pertinence par mots-clés: {verification_text}")
         
-        # Ajouter une seconde vérification si la première répond NON
-        if not documents_are_relevant:
-            logger.info(f"Première vérification négative, tentative de seconde vérification avec une méthode différente")
-            # Approche plus directe, basée sur la correspondance de mots-clés
-            keywords_messages = [
-                {"role": "system", "content": "Tu es un assistant qui détermine si un document contient des informations sur les sujets mentionnés dans une question. Réponds uniquement par 'OUI' ou 'NON'."},
-                {"role": "user", "content": f"Quels sont les mots-clés ou concepts principaux dans cette question: \"{req.question}\"? Puis vérifie si ces mots-clés apparaissent dans le document suivant:\n\n{context}\n\nSi au moins un mot-clé ou concept important de la question apparaît dans le document, réponds 'OUI', sinon réponds 'NON'."}
-            ]
-            
-            keywords_resp = get_chat_completion(req.model, keywords_messages, max_tokens=100)
-            keywords_text = keywords_resp['choices'][0]['message']['content'].upper()
-            documents_are_relevant = "OUI" in keywords_text
-            logger.info(f"Seconde vérification de pertinence: {keywords_text}")
-        
-        logger.info(f"Vérification finale de pertinence des documents: {verification_text}")
         logger.info(f"Documents jugés pertinents: {documents_are_relevant}")
         
         # Vérifier si le serveur PDF est disponible (port 8077)
