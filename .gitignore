@@ -25,3 +25,6 @@ dist-ssr
 
 
 backend/.env
+backend/mon_env/
+backend/env/
+

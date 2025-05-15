@@ -1,8 +1,20 @@
 """Configuration pour le système RAG."""
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement depuis le fichier .env
+load_dotenv()
 
 # Configuration du mode d'appel au modèle
 DEFAULT_MODE = "api"  # Choisir entre "api" (API Mistral) ou "local" (serveur local)
+
+# Configuration API Mistral
+# Pour activer le mode API:
+# 1. Changer DEFAULT_MODE = "api" 
+# 2. Définir la variable d'environnement MISTRAL_API_KEY
+# ex: export MISTRAL_API_KEY="votre_clé_api"
+API_MODEL = "mistral-small-latest"  # Modèle par défaut pour l'API Mistral
 
 # Chemins des dossiers
 BASE_DIR = Path(__file__).parent
