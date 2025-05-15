@@ -46,19 +46,19 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   return (
     <div
       className={cn(
-        'mb-4 flex w-full max-w-full flex-col',
+        'mb-5 flex w-full max-w-full flex-col', // Increased bottom margin
         isUser ? 'items-end' : 'items-start'
       )}
     >
       <div
         className={cn(
-          'rounded-2xl px-4 py-2 max-w-[80%] sm:max-w-[70%] break-words',
+          'rounded-2xl px-6 py-3 max-w-[85%] sm:max-w-[75%] break-words', // Increased padding and max-width
           isUser
             ? `${themeColors.userBg} ${themeColors.userText}`
             : `${themeColors.assistantBg} ${themeColors.assistantText} border ${themeColors.assistantBorder}`
         )}
       >
-        <div className="prose prose-sm max-w-none text-base">
+        <div className="prose prose-sm max-w-none text-base"> 
           {content}
           {isLoading && (
             <span className="inline-flex ml-2">
