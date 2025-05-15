@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatMessage, { ChatMessageProps } from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -31,6 +30,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [loading, setLoading] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showTrendingQuestions, setShowTrendingQuestions] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<ChatMessageProps | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -147,21 +147,38 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (messages.length === 0 && onFirstMessage) {
       onFirstMessage();
     }
+    
     setLoading(true);
+    
+    // Add loading message with dots animation
+    const loadingMsg: ChatMessageProps = {
+      role: 'assistant',
+      content: '',
+      isLoading: true
+    };
+    setLoadingMessage(loadingMsg);
+    
+    // Scroll after adding user message and loading indicator
+    setTimeout(scrollToBottom, 100);
+    
     try {
-      // Scroll après l'ajout du message utilisateur
-      setTimeout(scrollToBottom, 100);
       const response = await sendMessage(content);
 
-      // Ajouter la réponse du bot
+      // Remove loading message
+      setLoadingMessage(null);
+      
+      // Add bot response
       const botResponse: ChatMessageProps = {
         role: 'assistant',
         content: response.answer
       };
       setMessages(prev => [...prev, botResponse]);
-      // Scroll après l'ajout de la réponse du bot
+      // Scroll after adding the bot response
       setTimeout(scrollToBottom, 100);
     } catch (error) {
+      // Remove loading message in case of error
+      setLoadingMessage(null);
+      
       console.error("Erreur lors de l'envoi du message:", error);
       toast({
         title: "Erreur de connexion",
@@ -170,7 +187,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       });
     } finally {
       setLoading(false);
-      // Refocuser l'input après réception de la réponse
+      // Refocus the input after receiving response
       focusInput();
     }
   };
@@ -219,6 +236,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   theme={theme}
                 />
               ))}
+              
+              {/* Show loading message with animated dots */}
+              {loadingMessage && (
+                <ChatMessage
+                  {...loadingMessage}
+                  onNewChunkDisplayed={scrollToBottom}
+                  theme={theme}
+                />
+              )}
+              
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
