@@ -52,7 +52,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
     >
       <div
         className={cn(
-          'rounded-2xl px-6 py-3 max-w-[85%] sm:max-w-[75%] break-words', // Increased padding and max-width
+          'rounded-2xl px-6 py-3 max-w-[85%] sm:max-w-[75%] break-words animate-scale-in shadow-md transition-all duration-300', // Added animation and shadow
           isUser
             ? `${themeColors.userBg} ${themeColors.userText}`
             : `${themeColors.assistantBg} ${themeColors.assistantText} border ${themeColors.assistantBorder}`
@@ -61,10 +61,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
         <div className="prose prose-sm max-w-none text-base"> 
           {content}
           {isLoading && (
-            <span className="inline-flex ml-2">
-              <span className="animate-pulse text-lg">.</span>
-              <span className="animate-pulse text-lg animation-delay-200">.</span>
-              <span className="animate-pulse text-lg animation-delay-400">.</span>
+            <span className="inline-flex items-center ml-2">
+              <span className="w-2 h-2 rounded-full bg-current opacity-60 animate-bounce"></span>
+              <span className="w-2 h-2 rounded-full bg-current opacity-80 animate-bounce mx-1" style={{ animationDelay: '0.2s' }}></span>
+              <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0.4s' }}></span>
             </span>
           )}
         </div>
