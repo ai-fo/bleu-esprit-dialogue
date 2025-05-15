@@ -11,9 +11,16 @@ export interface ChatMessageProps {
   createdAt?: string;
   onNewChunkDisplayed?: () => void;
   theme?: 'user' | 'technician';
+  isLoading?: boolean;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, onNewChunkDisplayed, theme = 'user' }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ 
+  role, 
+  content, 
+  onNewChunkDisplayed, 
+  theme = 'user',
+  isLoading = false 
+}) => {
   const isUser = role === 'user';
 
   // Theme-based colors
@@ -51,8 +58,15 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, onNewChunkDisp
             : `${themeColors.assistantBg} ${themeColors.assistantText} border ${themeColors.assistantBorder}`
         )}
       >
-        <div className="prose prose-sm max-w-none">
+        <div className="prose prose-sm max-w-none text-base">
           {content}
+          {isLoading && (
+            <span className="inline-flex ml-2">
+              <span className="animate-pulse text-lg">.</span>
+              <span className="animate-pulse text-lg animation-delay-200">.</span>
+              <span className="animate-pulse text-lg animation-delay-400">.</span>
+            </span>
+          )}
         </div>
       </div>
 
