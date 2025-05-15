@@ -167,54 +167,97 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       // Remove loading message
       setLoadingMessage(null);
       
-      // Ajouter d'abord la réponse principale sans les documents
-      const initialResponse = response.answer.split(/\n\nSi tu veux plus d'informations/)[0];
-      const documentPart = response.answer.includes("\n\nSi tu veux plus d'informations") 
-        ? response.answer.split(/\n\nSi tu veux plus d'informations/)[1]
-        : "";
+      // Vérifier si le message a été décomposé en plusieurs parties
+      if (response.message_parts && response.message_parts.length > 1) {
+        // Afficher chaque partie du message comme un message distinct
+        const messageParts = response.message_parts;
         
-      // Afficher d'abord la réponse principale
-      const initialBotResponse: ChatMessageProps = {
-        role: 'assistant',
-        content: initialResponse
-      };
-      setMessages(prev => [...prev, initialBotResponse]);
-      
-      // Scroller après avoir ajouté la réponse principale
-      setTimeout(scrollToBottom, 100);
-      
-      // Si des documents sont mentionnés, ajouter une indication de recherche
-      if (documentPart) {
-        // Ajouter un message de chargement pour la recherche de documents
-        const docsLoadingMsg: ChatMessageProps = {
-          role: 'assistant',
-          content: 'Recherche de documents pertinents...',
-          isLoading: true
-        };
-        setMessages(prev => [...prev, docsLoadingMsg]);
-        
-        // Scroller après avoir ajouté l'indicateur de chargement
-        setTimeout(scrollToBottom, 100);
-        
-        // Attendre un peu pour montrer que le système "cherche" les documents
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Retirer le message de chargement
-        setMessages(prev => prev.filter(msg => msg !== docsLoadingMsg));
-        
-        // Mettre à jour le message principal pour inclure la partie concernant les documents
-        setMessages(prev => {
-          const updatedMessages = [...prev];
-          const lastMessage = updatedMessages[updatedMessages.length - 1];
-          updatedMessages[updatedMessages.length - 1] = {
-            ...lastMessage,
-            content: response.answer
+        // On ajoute chaque partie comme un message séparé avec un délai entre chaque
+        const addMessageWithDelay = async (index: number) => {
+          if (index >= messageParts.length) return;
+          
+          // Ajouter cette partie du message
+          const partMessage: ChatMessageProps = {
+            role: 'assistant',
+            content: messageParts[index]
           };
-          return updatedMessages;
-        });
+          setMessages(prev => [...prev, partMessage]);
+          
+          // Scroller après chaque partie
+          setTimeout(scrollToBottom, 100);
+          
+          // Ajouter un délai avant la partie suivante pour simuler la frappe
+          if (index < messageParts.length - 1) {
+            // Afficher un nouvel indicateur de chargement entre les parties
+            if (index < messageParts.length - 1) {
+              const typingMsg: ChatMessageProps = {
+                role: 'assistant',
+                content: '',
+                isLoading: true
+              };
+              setLoadingMessage(typingMsg);
+              
+              // Attendre un moment avant d'afficher la partie suivante
+              await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+              
+              // Supprimer l'indicateur de chargement
+              setLoadingMessage(null);
+              
+              // Ajouter la partie suivante
+              await addMessageWithDelay(index + 1);
+            }
+          }
+        };
         
-        // Scroller après avoir mis à jour le message
+        // Commencer à ajouter les parties une par une
+        await addMessageWithDelay(0);
+      } else {
+        // Comportement original pour les messages non décomposés
+        // Ajouter d'abord la réponse principale sans les documents
+        const initialResponse = response.answer.split(/\n\nSi tu veux plus d'informations/)[0];
+        const documentPart = response.answer.includes("\n\nSi tu veux plus d'informations") 
+          ? "Si tu veux plus d'informations" + response.answer.split(/\n\nSi tu veux plus d'informations/)[1]
+          : "";
+          
+        // Afficher d'abord la réponse principale
+        const initialBotResponse: ChatMessageProps = {
+          role: 'assistant',
+          content: initialResponse
+        };
+        setMessages(prev => [...prev, initialBotResponse]);
+        
+        // Scroller après avoir ajouté la réponse principale
         setTimeout(scrollToBottom, 100);
+        
+        // Si des documents sont mentionnés, les ajouter comme un message séparé
+        if (documentPart) {
+          // Ajouter un message de chargement pour la recherche de documents
+          const docsLoadingMsg: ChatMessageProps = {
+            role: 'assistant',
+            content: 'Recherche de documents pertinents...',
+            isLoading: true
+          };
+          setMessages(prev => [...prev, docsLoadingMsg]);
+          
+          // Scroller après avoir ajouté l'indicateur de chargement
+          setTimeout(scrollToBottom, 100);
+          
+          // Attendre un peu pour montrer que le système "cherche" les documents
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          // Retirer le message de chargement
+          setMessages(prev => prev.filter(msg => msg !== docsLoadingMsg));
+          
+          // Ajouter un nouveau message distinct avec les informations de documents
+          const documentMessage: ChatMessageProps = {
+            role: 'assistant',
+            content: documentPart
+          };
+          setMessages(prev => [...prev, documentMessage]);
+          
+          // Scroller après avoir ajouté le message de documents
+          setTimeout(scrollToBottom, 100);
+        }
       }
     } catch (error) {
       // Remove loading message in case of error
@@ -275,6 +318,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   {...message} 
                   onNewChunkDisplayed={scrollToBottom} 
                   theme={theme}
+                  isLastInSequence={
+                    // C'est le dernier message si:
+                    message.role === 'user' || // C'est un message utilisateur
+                    index === messages.length - 1 || // C'est le dernier message de la liste
+                    messages[index + 1]?.role === 'user' // Le message suivant est de l'utilisateur
+                  }
                 />
               ))}
               

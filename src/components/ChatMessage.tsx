@@ -12,6 +12,7 @@ export interface ChatMessageProps {
   onNewChunkDisplayed?: () => void;
   theme?: 'user' | 'technician';
   isLoading?: boolean;
+  isLastInSequence?: boolean;
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ 
@@ -19,7 +20,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   content, 
   onNewChunkDisplayed, 
   theme = 'user',
-  isLoading = false 
+  isLoading = false,
+  isLastInSequence = true
 }) => {
   const isUser = role === 'user';
 
@@ -100,8 +102,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
         </div>
       </div>
 
-      {/* Only show feedback and reliability indicator when not loading and for assistant messages */}
-      {!isUser && !isLoading && (
+      {/* Only show feedback and reliability indicator when not loading, for assistant messages, and only for the last message in the sequence */}
+      {!isUser && !isLoading && isLastInSequence && (
         <div className="mt-1.5 flex items-center space-x-2 px-1">
           <ReliabilityIndicator score={95} />
           <FeedbackButtons messageId="1" theme={theme} />

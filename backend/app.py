@@ -12,7 +12,8 @@ from rag import (
     rag, 
     get_chat_completion,
     initialize_reranker,
-    check_api_key
+    check_api_key,
+    split_long_message
 )
 
 # Configure logging
@@ -41,6 +42,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     files_used: List[str]
+    message_parts: List[str] = []  # Liste des parties du message si décomposé
 
 class ClearHistoryRequest(BaseModel):
     session_id: str
@@ -85,10 +87,17 @@ def chat_endpoint(req: ChatRequest):
     # Build prompt sequence with conversation history
     system_msg = (
         "You are a helpful hotline assistant named Oskour. "
-        "For technical questions, use the provided documents to answer. "
+        "Your primary role is to answer technical questions using the provided documents and remember previous interactions with the user. "
         "For casual conversations or greetings like 'bonjour', 'ça va ?', etc., respond in a friendly and conversational manner. "
         "Only if the user is asking a technical question and the answer is not in the documents, respond: "
         "'Je suis désolé, je n'ai pas assez d'informations pour répondre à cette question technique.'"
+        "\n\nIMPORTANT : NE JAMAIS terminer tes réponses par des phrases comme 'N'hésitez pas à me poser d'autres questions', "
+        "'Si vous avez besoin de plus d'informations...', 'N'hésitez pas à demander plus de détails', etc. "
+        "J'ajouterai moi-même un message standardisé avec les informations de contact. "
+        "Termine simplement ta réponse quand tu as fini d'expliquer."
+        "\n\nMEMORY: Quand l'utilisateur te demande de te rappeler de quelque chose que tu as dit précédemment, "
+        "utilise l'historique de conversation pour retrouver l'information précise. Si on te demande de répéter ou résumer "
+        "ce que tu as déjà expliqué, utilise les messages précédents de l'historique pour formuler ta réponse."
         "\n\nDocuments:\n{context}"
     )
     
@@ -101,9 +110,18 @@ def chat_endpoint(req: ChatRequest):
     # Ne prendre que les 10 derniers messages maximum pour avoir 5 échanges
     recent_history = CONVERSATION_CACHE[req.session_id][-10:] if CONVERSATION_CACHE[req.session_id] else []
     
+    # Journaliser l'historique récupéré pour le débogage
+    if recent_history:
+        logger.info(f"Historique récupéré pour la session {req.session_id}: {len(recent_history)} messages")
+        for i, msg in enumerate(recent_history):
+            logger.info(f"  Message {i+1}: {msg['role']} - {msg['content'][:50]}...")
+    else:
+        logger.info(f"Aucun historique pour la session {req.session_id}")
+    
     # S'assurer que l'historique commence par un message utilisateur
     if recent_history and recent_history[0]["role"] == "assistant":
         recent_history = recent_history[1:]
+        logger.info("Premier message assistant supprimé de l'historique")
     
     # Ajouter les messages en s'assurant qu'ils alternent correctement
     for i in range(0, len(recent_history), 2):
@@ -115,9 +133,18 @@ def chat_endpoint(req: ChatRequest):
     
     # Ajouter l'historique correctement construit
     messages.extend(history)
+    logger.info(f"Nombre de messages d'historique ajoutés au prompt: {len(history)}")
     
     # Ajouter la question actuelle
     messages.append({"role": "user", "content": req.question})
+    
+    # Log des messages envoyés au LLM
+    logger.info("Messages envoyés au LLM:")
+    for i, msg in enumerate(messages):
+        if i == 0:  # Le premier message est le système prompt, qui peut être très long
+            logger.info(f"  Message {i} (system): {msg['content'][:100]}... (tronqué)")
+        else:
+            logger.info(f"  Message {i} ({msg['role']}): {msg['content'][:100]}...")
     
     # Get LLM completion
     resp = get_chat_completion(req.model, messages, max_tokens=req.max_tokens)
@@ -127,7 +154,11 @@ def chat_endpoint(req: ChatRequest):
     is_technical_question = len(files) > 0
     logger.info(f"Question technique: {is_technical_question}")
     
-    # Ajouter le message de fin si c'est une question technique avec des documents pertinents
+    # Message principal sans les liens de documents
+    main_answer = answer
+    documents_message = ""
+
+    # Vérifier si nous devons ajouter des liens de documents
     if is_technical_question and files:
         # Demander au LLM si les documents ont réellement été utiles pour répondre à la question
         verification_messages = [
@@ -183,14 +214,14 @@ def chat_endpoint(req: ChatRequest):
                 pdf_link = f"http://localhost:8077/pdf/{filename}"
                 pdf_links.append(pdf_link)
             
-            # Ajouter le message de fin avec les liens seulement si des PDFs valides ont été trouvés
+            # Créer un message séparé pour les documents
             if pdf_links:
                 if len(pdf_links) == 1:
-                    answer += f"\n\nSi tu veux plus d'informations, tu peux consulter ce document: {pdf_links[0]} sinon appelle le 3400."
+                    documents_message = f"Plus d'informations dans ce document : {pdf_links[0]} ou appelle le 3400."
                 else:
                     links_text = ", ".join(pdf_links[:-1]) + " et " + pdf_links[-1] if len(pdf_links) > 1 else pdf_links[0]
-                    answer += f"\n\nSi tu veux plus d'informations, tu peux consulter ces documents: {links_text} sinon appelle le 3400."
-                logger.info(f"Message avec liens PDF ajouté: {pdf_links}")
+                    documents_message = f"Plus d'informations dans ces documents : {links_text} ou appelle le 3400."
+                logger.info(f"Message séparé avec liens PDF créé: {pdf_links}")
             else:
                 logger.warning("Aucun fichier PDF valide n'a été trouvé, pas de liens ajoutés.")
         elif not pdf_server_available:
@@ -198,13 +229,29 @@ def chat_endpoint(req: ChatRequest):
         elif not documents_are_relevant:
             logger.info("Documents jugés non pertinents, pas de liens ajoutés.")
     
-    # Update conversation history
-    CONVERSATION_CACHE[req.session_id].extend([
-        {"role": "user", "content": req.question},
-        {"role": "assistant", "content": answer}
-    ])
+    # Décomposer le message principal en plusieurs parties si nécessaire
+    message_parts = split_long_message(main_answer)
+    logger.info(f"Message principal décomposé en {len(message_parts)} parties")
     
-    return ChatResponse(answer=answer, files_used=files)
+    # Ajouter le message de documents comme une partie séparée si présent
+    if documents_message:
+        message_parts.append(documents_message)
+        logger.info("Message sur les documents ajouté comme partie séparée")
+    
+    # Update conversation history
+    # Ajouter la question de l'utilisateur
+    CONVERSATION_CACHE[req.session_id].append({"role": "user", "content": req.question})
+    
+    # Si le message est décomposé en plusieurs parties, les ajouter comme une seule entrée concaténée
+    # pour préserver le contexte
+    combined_answer = "\n\n".join(message_parts)
+    CONVERSATION_CACHE[req.session_id].append({"role": "assistant", "content": combined_answer})
+    
+    # Journaliser l'état de l'historique pour le débogage
+    history_count = len(CONVERSATION_CACHE[req.session_id])
+    logger.info(f"Historique mis à jour: {history_count} messages au total pour la session {req.session_id}")
+    
+    return ChatResponse(answer=answer, files_used=files, message_parts=message_parts)
 
 @app.post("/clear_history")
 def clear_history_endpoint(req: ClearHistoryRequest):

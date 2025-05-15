@@ -14,6 +14,7 @@ const DEFAULT_MODEL = 'Mistral-Large-Instruct-2407-AWQ';
 export interface ChatResponse {
   answer: string;
   files_used: string[];
+  message_parts: string[];
 }
 
 /**
