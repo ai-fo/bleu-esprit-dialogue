@@ -70,7 +70,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
         </div>
       </div>
 
-      {!isUser && (
+      {/* Only show feedback and reliability indicator when not loading and for assistant messages */}
+      {!isUser && !isLoading && (
         <div className="mt-1.5 flex items-center space-x-2 px-1">
           <ReliabilityIndicator score={95} />
           <FeedbackButtons messageId="1" theme={theme} />
