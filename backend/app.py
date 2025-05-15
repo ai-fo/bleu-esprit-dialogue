@@ -5,6 +5,7 @@ import logging
 from typing import List, Dict
 from datetime import datetime
 import httpx
+import time
 from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER
 
 # Import fonctions du module rag
@@ -43,6 +44,7 @@ class ChatResponse(BaseModel):
     answer: str
     files_used: List[str]
     message_parts: List[str] = []  # Liste des parties du message si décomposé
+    performance: Dict[str, float] = {}  # Mesures de performance
 
 class ClearHistoryRequest(BaseModel):
     session_id: str
@@ -75,16 +77,23 @@ def rag_endpoint(req: RAGRequest):
 @app.post("/chat", response_model=ChatResponse)
 def chat_endpoint(req: ChatRequest):
     """Combine RAG context with LLM response for a chatbot hotline with conversation history."""
+    # Démarrer le minuteur global
+    start_total = time.time()
+    
     # Initialize conversation history if it doesn't exist
     if req.session_id not in CONVERSATION_CACHE:
         CONVERSATION_CACHE[req.session_id] = []
     
     # Retrieve context for prompt
+    start_rag = time.time()
     context, files = rag(req.question, req.knowledge_base)
+    rag_time = time.time() - start_rag
     logger.info(f"RAG a trouvé {len(files)} fichiers pour la question: {req.question}")
     logger.info(f"Fichiers trouvés: {files}")
+    logger.info(f"Temps RAG: {rag_time:.2f}s")
     
     # Build prompt sequence with conversation history
+    start_prompt = time.time()
     system_msg = (
         "You are a helpful hotline assistant named Oskour. "
         "Your primary role is to answer technical questions using the provided documents and remember previous interactions with the user. "
@@ -147,8 +156,11 @@ def chat_endpoint(req: ChatRequest):
             logger.info(f"  Message {i} ({msg['role']}): {msg['content'][:100]}...")
     
     # Get LLM completion
+    start_llm = time.time()
     resp = get_chat_completion(req.model, messages, max_tokens=req.max_tokens)
     answer = resp['choices'][0]['message']['content']
+    llm_time = time.time() - start_llm
+    logger.info(f"Temps génération LLM: {llm_time:.2f}s")
     
     # Déterminer si c'est une question technique qui nécessite vraiment des documents (présence de fichiers utilisés)
     is_technical_question = len(files) > 0
@@ -159,6 +171,7 @@ def chat_endpoint(req: ChatRequest):
     documents_message = ""
 
     # Vérifier si nous devons ajouter des liens de documents
+    start_doc_check = time.time()
     if is_technical_question and files:
         # Demander au LLM si les documents ont réellement été utiles pour répondre à la question
         verification_messages = [
@@ -228,10 +241,15 @@ def chat_endpoint(req: ChatRequest):
             logger.warning("Serveur PDF non disponible, pas de liens ajoutés.")
         elif not documents_are_relevant:
             logger.info("Documents jugés non pertinents, pas de liens ajoutés.")
+    doc_check_time = time.time() - start_doc_check
+    logger.info(f"Temps vérification documents: {doc_check_time:.2f}s")
     
     # Décomposer le message principal en plusieurs parties si nécessaire
+    start_split = time.time()
     message_parts = split_long_message(main_answer)
+    split_time = time.time() - start_split
     logger.info(f"Message principal décomposé en {len(message_parts)} parties")
+    logger.info(f"Temps découpage message: {split_time:.2f}s")
     
     # Ajouter le message de documents comme une partie séparée si présent
     if documents_message:
@@ -251,7 +269,25 @@ def chat_endpoint(req: ChatRequest):
     history_count = len(CONVERSATION_CACHE[req.session_id])
     logger.info(f"Historique mis à jour: {history_count} messages au total pour la session {req.session_id}")
     
-    return ChatResponse(answer=answer, files_used=files, message_parts=message_parts)
+    # Calculer et journaliser le temps total
+    total_time = time.time() - start_total
+    logger.info(f"Temps total de traitement: {total_time:.2f}s")
+    
+    # Résumé des performances
+    logger.info(f"RÉSUMÉ PERFORMANCES: Total={total_time:.2f}s | RAG={rag_time:.2f}s | LLM={llm_time:.2f}s | DocCheck={doc_check_time:.2f}s | Split={split_time:.2f}s")
+    
+    return ChatResponse(
+        answer=answer, 
+        files_used=files, 
+        message_parts=message_parts,
+        performance={
+            "total_time": round(total_time, 2),
+            "rag_time": round(rag_time, 2),
+            "llm_time": round(llm_time, 2),
+            "doc_check_time": round(doc_check_time, 2),
+            "split_time": round(split_time, 2)
+        }
+    )
 
 @app.post("/clear_history")
 def clear_history_endpoint(req: ClearHistoryRequest):
