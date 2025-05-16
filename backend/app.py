@@ -169,6 +169,10 @@ def chat_endpoint(req: ChatRequest):
     # Message principal sans les liens de documents
     main_answer = answer
     documents_message = ""
+    
+    # Afficher le début de la réponse pour débogage
+    logger.info(f"Réponse du LLM (début): {main_answer[:200]}...")
+    logger.info(f"Longueur de la réponse: {len(main_answer)} caractères")
 
     # Vérifier si nous devons ajouter des liens de documents
     start_doc_check = time.time()

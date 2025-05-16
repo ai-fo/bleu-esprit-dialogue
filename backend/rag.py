@@ -54,7 +54,12 @@ def split_long_message(message: str, min_chunks: int = 2, max_chunks: int = 5) -
     """
     # Si le message est court (<400 caractères), le retourner tel quel
     if len(message) < 400:
+        logger.info(f"Message trop court pour être découpé ({len(message)} caractères)")
         return [message]
+    
+    # Afficher les 100 premiers caractères du message à découper
+    logger.info(f"Message à découper (début): {message[:100]}...")
+    logger.info(f"Longueur totale du message: {len(message)} caractères")
     
     # Déterminer le nombre recommandé de parties en fonction de la longueur
     msg_length = len(message)
@@ -70,25 +75,31 @@ def split_long_message(message: str, min_chunks: int = 2, max_chunks: int = 5) -
     
     # S'assurer de respecter les limites
     recommended_chunks = max(min_chunks, min(recommended_chunks, max_chunks))
+    logger.info(f"Nombre recommandé de parties: {recommended_chunks}")
     
     # Préparer le prompt pour le LLM avec des instructions très strictes
-    system_prompt = """Tu es un expert qui divise les longs messages en parties plus courtes.
-    OBJECTIF: Diviser un texte en EXACTEMENT le nombre de parties demandé (ni plus, ni moins).
-    
-    RÈGLES STRICTES:
-    1. Divise le texte en EXACTEMENT le nombre de parties spécifié
-    2. Chaque partie doit contenir plusieurs phrases complètes
-    3. Divise uniquement aux transitions logiques naturelles
-    4. Assure-toi que chaque partie fait approximativement la même longueur
-    5. Ne crée pas de parties trop courtes
-    
-    FORMAT: Sépare chaque partie par exactement trois tirets ("---").
-    Ne numérote pas les parties. N'ajoute pas d'introduction ni de conclusion.
-    RÉPONDS UNIQUEMENT AVEC LES PARTIES DU MESSAGE SÉPARÉES PAR ---."""
+    system_prompt = """Tu es un expert en découpage de texte. Ta mission est de diviser un texte en exactement X parties.
+
+INSTRUCTIONS:
+1. Divise le texte en EXACTEMENT le nombre de parties demandé
+2. Utilise exactement trois tirets ("---") comme séparateur entre les parties
+3. Chaque partie doit faire une taille similaire
+
+TRÈS IMPORTANT:
+- N'ajoute PAS de numéros, de titres ou de texte supplémentaire
+- Réponds UNIQUEMENT avec les parties du texte séparées par ---
+- Ne numérote PAS les parties (pas de "Partie 1:", etc.)
+
+EXEMPLE pour diviser en 2 parties:
+Première partie du texte...
+---
+Deuxième partie du texte...
+
+ATTENTION: Tu dois produire EXACTEMENT le nombre de séparateurs "---" demandé (soit X-1 séparateurs pour X parties)."""
     
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Divise ce texte en EXACTEMENT {recommended_chunks} parties de taille similaire:\n\n{message}"}
+        {"role": "user", "content": f"Découpe ce texte en EXACTEMENT {recommended_chunks} parties égales, séparées par ---:\n\n{message}"}
     ]
     
     # Appeler le LLM pour découper le message
@@ -106,11 +117,71 @@ def split_long_message(message: str, min_chunks: int = 2, max_chunks: int = 5) -
         response = get_chat_completion(model, messages, max_tokens=6000, api_url=api_url)
         content = response['choices'][0]['message']['content']
         
-        # Découper la réponse selon le séparateur
-        parts = content.split('---')
+        # Afficher la réponse brute pour débogage
+        logger.info(f"Réponse brute du LLM pour le découpage: {content[:500]}...")
+        
+        # Essayer différentes variantes du séparateur pour plus de robustesse
+        if '---' in content:
+            parts = content.split('---')
+            logger.info("Séparateur standard '---' trouvé dans la réponse")
+        elif '\n\n' in content:
+            # Essayer de diviser par paragraphes si pas de séparateur explicite
+            parts = content.split('\n\n')
+            logger.info("Pas de séparateur '---', utilisation des paragraphes vides '\\n\\n'")
+        elif '***' in content:
+            # Certains modèles pourraient utiliser des astérisques au lieu de tirets
+            parts = content.split('***')
+            logger.info("Utilisation du séparateur alternatif '***'")
+        elif re.search(r'partie\s+\d+', content.lower()):
+            # Rechercher des motifs comme "Partie 1", "partie 2", etc.
+            parts = re.split(r'(?i)partie\s+\d+[\s:]*', content)
+            # Supprimer la première partie vide s'il y en a une
+            if parts and not parts[0].strip():
+                parts = parts[1:]
+            logger.info("Utilisation des indicateurs 'Partie X' comme séparateurs")
+        else:
+            # Fallback: simplement diviser en paragraphes
+            parts = [content]
+            logger.info("Aucun séparateur reconnu, considérant toute la réponse comme une seule partie")
         
         # Nettoyer les parties
         cleaned_parts = [part.strip() for part in parts if part.strip()]
+        logger.info(f"Nombre de parties identifiées après découpage: {len(cleaned_parts)}")
+        
+        # Afficher le début de chaque partie pour débogage
+        for i, part in enumerate(cleaned_parts):
+            logger.info(f"Partie {i+1} (début): {part[:50]}...")
+            
+        # Si nous avons trop peu ou trop de parties, essayer une dernière approche basée sur les retours à la ligne
+        if (len(cleaned_parts) < min_chunks or len(cleaned_parts) > max_chunks) and len(content) > 0:
+            logger.info(f"Découpage inapproprié ({len(cleaned_parts)} parties), analyse basée sur les retours à la ligne")
+            
+            # Diviser le contenu en paragraphes
+            paragraphs = [p.strip() for p in re.split(r'\n\s*\n', content) if p.strip()]
+            
+            if len(paragraphs) >= min_chunks:
+                # Diviser les paragraphes en nombre de parties approprié
+                target_part_count = min(max(min_chunks, len(paragraphs) // 2), max_chunks)
+                logger.info(f"Tentative de regroupement en {target_part_count} parties à partir de {len(paragraphs)} paragraphes")
+                
+                paragraphs_per_part = len(paragraphs) // target_part_count
+                remainder = len(paragraphs) % target_part_count
+                
+                new_parts = []
+                start_idx = 0
+                
+                for i in range(target_part_count):
+                    count = paragraphs_per_part + (1 if i < remainder else 0)
+                    end_idx = start_idx + count
+                    joined_paragraphs = "\n\n".join(paragraphs[start_idx:end_idx])
+                    new_parts.append(joined_paragraphs)
+                    start_idx = end_idx
+                
+                if new_parts:
+                    cleaned_parts = new_parts
+                    logger.info(f"Nouvelle division réussie en {len(cleaned_parts)} parties")
+                    for i, part in enumerate(cleaned_parts):
+                        logger.info(f"Nouvelle partie {i+1} (début): {part[:50]}...")
         
         # Vérifier si le LLM a respecté le nombre exact de parties
         if len(cleaned_parts) == recommended_chunks:
