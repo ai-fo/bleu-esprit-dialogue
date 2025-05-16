@@ -6,6 +6,7 @@ from typing import List, Dict
 from datetime import datetime
 import httpx
 import time
+import random
 from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, MINISTRAL_PATH, MINISTRAL_URL
 
 # Import fonctions du module rag
@@ -45,6 +46,7 @@ class ChatResponse(BaseModel):
     files_used: List[str]
     message_parts: List[str] = []  # Liste des parties du message si décomposé
     performance: Dict[str, float] = {}  # Mesures de performance
+    typing_delays: List[float] = []  # Délais de frappe aléatoires entre les parties de message
 
 class ClearHistoryRequest(BaseModel):
     session_id: str
@@ -95,18 +97,35 @@ def chat_endpoint(req: ChatRequest):
     # Build prompt sequence with conversation history
     start_prompt = time.time()
     system_msg = (
-        "You are a helpful hotline assistant named Oskour. "
-        "Your primary role is to answer technical questions using the provided documents and remember previous interactions with the user. "
-        "For casual conversations or greetings like 'bonjour', 'ça va ?', etc., respond in a friendly and conversational manner. "
-        "Only if the user is asking a technical question and the answer is not in the documents, respond: "
-        "'Je suis désolé, je n'ai pas assez d'informations pour répondre à cette question technique.'"
-        "\n\nIMPORTANT : NE JAMAIS terminer tes réponses par des phrases comme 'N'hésitez pas à me poser d'autres questions', "
-        "'Si vous avez besoin de plus d'informations...', 'N'hésitez pas à demander plus de détails', etc. "
-        "J'ajouterai moi-même un message standardisé avec les informations de contact. "
+        "Tu es Oskour, un assistant de hotline sympathique et humain. "
+        "Tu as une personnalité chaleureuse et tu t'exprimes comme un vrai humain, pas comme un robot. "
+        "\n\nSTYLE: "
+        "- Utilise un ton conversationnel, dynamique et naturel"
+        "- Emploie parfois des expressions familières comme 'Ah, je vois!', 'Hmm, laisse-moi réfléchir...', 'Bien sûr!'"
+        "- Fais des phrases de longueurs variées - parfois courtes, parfois plus longues"
+        "- N'hésite pas à utiliser des petites interjections (ah, eh bien, tiens, etc.)"
+        "- Montre un peu d'empathie quand l'utilisateur semble frustré"
+        "- Évite le langage trop formel ou trop technique sauf si nécessaire"
+        "- Utilise occasionnellement des émojis simples comme :) ou ;) mais avec modération"
+        "- Fais parfois des petites fautes de frappe mineures (pas trop) ou reprends-toi comme un humain le ferait"
+        "\n\nRÔLE: Ta mission principale est de répondre aux questions techniques en utilisant les documents fournis et "
+        "te souvenir des interactions précédentes avec l'utilisateur. "
+        "Pour les conversations décontractées ou les salutations comme 'bonjour', 'ça va ?', etc., réponds de façon amicale. "
+        "Uniquement si l'utilisateur pose une question technique et que la réponse n'est pas dans les documents, réponds: "
+        "'Mmm, je suis désolé, je n'ai pas assez d'infos pour répondre à cette question technique...'"
+        "\n\nIMPORTANT: NE JAMAIS terminer tes réponses par des phrases comme 'N'hésite pas à me poser d'autres questions', "
+        "'Si tu as besoin de plus d'infos...', etc. J'ajouterai moi-même un message avec les infos de contact. "
         "Termine simplement ta réponse quand tu as fini d'expliquer."
-        "\n\nMEMORY: Quand l'utilisateur te demande de te rappeler de quelque chose que tu as dit précédemment, "
-        "utilise l'historique de conversation pour retrouver l'information précise. Si on te demande de répéter ou résumer "
-        "ce que tu as déjà expliqué, utilise les messages précédents de l'historique pour formuler ta réponse."
+        "\n\nMEMORY: Quand l'utilisateur te demande de te rappeler quelque chose, utilise l'historique de conversation "
+        "pour retrouver l'info précise. Si on te demande de répéter ou résumer ce que tu as déjà expliqué, "
+        "utilise les messages précédents pour formuler ta réponse."
+        "\n\nSTRUCTURE: Pour les réponses longues (plus de 400 caractères), structure ta réponse en parties logiques "
+        "en insérant le séparateur '%%PARTIE%%' entre chaque partie (entre 2 et 5 parties maximum). "
+        "Ne numérote pas les parties et n'ajoute pas d'introduction spéciale pour chaque partie. "
+        "Assure-toi que chaque partie est autonome et contient des phrases complètes."
+        "\n\nFORMATAGE: Mets en **gras** les informations importantes et les concepts clés de ta réponse en utilisant "
+        "la syntaxe markdown (deux astérisques avant et après le texte important: **texte important**). "
+        "N'en abuse pas, seulement 2-3 éléments importants par partie de message."
         "\n\nDocuments:\n{context}"
     )
     
@@ -242,6 +261,13 @@ def chat_endpoint(req: ChatRequest):
     logger.info(f"Message principal décomposé en {len(message_parts)} parties")
     logger.info(f"Temps découpage message: {split_time:.2f}s")
     
+    # Générer des délais de frappe aléatoires pour un affichage plus naturel
+    typing_delays = []
+    for i in range(len(message_parts)):
+        # Délai aléatoire entre 0.5 et 2.5 secondes entre les parties
+        delay = round(random.uniform(0.5, 2.5), 2)
+        typing_delays.append(delay)
+    
     # Afficher tous les morceaux découpés
     logger.info("=== MORCEAUX DU MESSAGE DÉCOUPÉS ===")
     for i, part in enumerate(message_parts):
@@ -284,7 +310,8 @@ def chat_endpoint(req: ChatRequest):
             "llm_time": round(llm_time, 2),
             "doc_check_time": round(doc_check_time, 2),
             "split_time": round(split_time, 2)
-        }
+        },
+        typing_delays=typing_delays
     )
 
 @app.post("/clear_history")

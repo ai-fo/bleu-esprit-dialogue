@@ -39,10 +39,12 @@ else:
 # Cache for loaded knowledge bases: {kb_path: {'file_texts': {...}, 'chunks': [(filename, chunk_text), ...]}}
 KB_CACHE: Dict[str, Dict] = {}
 
-# Fonction pour décomposer un message long en plusieurs messages en utilisant le LLM
+# Fonction simplifiée pour découper un message selon des séparateurs standards
 def split_long_message(message: str, min_chunks: int = 2, max_chunks: int = 5) -> List[str]:
     """
-    Utilise un LLM pour décomposer un message long en plusieurs messages, avec une limite stricte de 2 à 5 messages.
+    Découpe un message en plusieurs parties en se basant sur des séparateurs standards.
+    Si le message contient des séparateurs explicites (%%PARTIE%%), les utilise.
+    Sinon, découpe de manière algorithmique tout en préservant le formatage markdown.
     
     Args:
         message: Le message à décomposer
@@ -56,129 +58,106 @@ def split_long_message(message: str, min_chunks: int = 2, max_chunks: int = 5) -
     if len(message) < 400:
         return [message]
     
+    # Vérifier si le message contient des séparateurs de partie standard
+    standard_separator = "%%PARTIE%%"
+    if standard_separator in message:
+        logger.info("Message contient des séparateurs standards, découpage selon ces séparateurs")
+        parts = message.split(standard_separator)
+        # Nettoyer les parties vides ou uniquement avec des espaces
+        cleaned_parts = [part.strip() for part in parts if part.strip()]
+        
+        # Vérifier si le nombre de parties est dans les limites
+        if min_chunks <= len(cleaned_parts) <= max_chunks:
+            logger.info(f"Découpage standard en {len(cleaned_parts)} parties")
+            return cleaned_parts
+        
+        # Si trop de parties, les regrouper
+        if len(cleaned_parts) > max_chunks:
+            logger.info(f"Trop de parties ({len(cleaned_parts)}), regroupement en {max_chunks} parties")
+            merged_parts = []
+            parts_per_group = len(cleaned_parts) // max_chunks
+            remainder = len(cleaned_parts) % max_chunks
+            
+            start_idx = 0
+            for i in range(max_chunks):
+                count = parts_per_group + (1 if i < remainder else 0)
+                end_idx = start_idx + count
+                merged_part = "\n\n".join(cleaned_parts[start_idx:end_idx])
+                merged_parts.append(merged_part)
+                start_idx = end_idx
+            
+            return merged_parts
+        
+        # Si pas assez de parties mais au moins une, la retourner
+        if cleaned_parts:
+            logger.info(f"Pas assez de parties ({len(cleaned_parts)}), mais au moins une partie valide")
+            return cleaned_parts
+    
+    # Si pas de séparateurs standard ou problème avec les parties, utiliser l'approche algorithmique
+    logger.info("Pas de séparateurs standards détectés, utilisation du découpage algorithmique")
+    
     # Déterminer le nombre recommandé de parties en fonction de la longueur
     msg_length = len(message)
-    # Définir des seuils adaptés pour respecter la limite de 2-5 messages
     if msg_length < 1200:
-        recommended_chunks = 2  # Pour les messages courts: 2 parties
+        recommended_chunks = 2
     elif msg_length < 2000:
-        recommended_chunks = 3  # Pour les messages moyens: 3 parties
+        recommended_chunks = 3
     elif msg_length < 3000:
-        recommended_chunks = 4  # Pour les messages longs: 4 parties
+        recommended_chunks = 4
     else:
-        recommended_chunks = 5  # Pour les très longs messages: max 5 parties
+        recommended_chunks = 5
     
     # S'assurer de respecter les limites
     recommended_chunks = max(min_chunks, min(recommended_chunks, max_chunks))
     
-    # Préparer le prompt pour le LLM avec des instructions très strictes
-    system_prompt = """Tu es un expert qui divise les longs messages en parties plus courtes.
-    OBJECTIF: Diviser un texte en EXACTEMENT le nombre de parties demandé (ni plus, ni moins).
+    # Prétraitement pour identifier les balises de formatage markdown
+    # On protège le texte en gras pour ne pas le couper
+    bold_pattern = r'\*\*([^*]+)\*\*'
+    bold_sections = re.findall(bold_pattern, message)
     
-    RÈGLES STRICTES:
-    1. Divise le texte en EXACTEMENT le nombre de parties spécifié
-    2. Chaque partie doit contenir plusieurs phrases complètes
-    3. Divise uniquement aux transitions logiques naturelles
-    4. Assure-toi que chaque partie fait approximativement la même longueur
-    5. Ne crée pas de parties trop courtes
+    # Remplacer temporairement les sections en gras par des marqueurs uniques
+    placeholder_map = {}
+    for i, section in enumerate(bold_sections):
+        placeholder = f"__BOLD_SECTION_{i}__"
+        placeholder_map[placeholder] = f"**{section}**"
+        message = message.replace(f"**{section}**", placeholder, 1)
     
-    FORMAT: Sépare chaque partie par exactement trois tirets ("---").
-    Ne numérote pas les parties. N'ajoute pas d'introduction ni de conclusion.
-    RÉPONDS UNIQUEMENT AVEC LES PARTIES DU MESSAGE SÉPARÉES PAR ---."""
+    # Découpage algorithmique par phrases
+    sentences = re.split(r'(?<=[.!?])\s+', message)
     
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Divise ce texte en EXACTEMENT {recommended_chunks} parties de taille similaire:\n\n{message}"}
-    ]
+    # Si très peu de phrases, retourner le message entier
+    if len(sentences) <= recommended_chunks:
+        logger.info(f"Trop peu de phrases ({len(sentences)}) pour découper en {recommended_chunks} parties")
+        # Restaurer les sections en gras avant de retourner
+        for placeholder, original in placeholder_map.items():
+            message = message.replace(placeholder, original)
+        return [message]
     
-    # Appeler le LLM pour découper le message en utilisant spécifiquement Ministral-8B
-    try:
-        logger.info(f"Utilisation du modèle Ministral-8B pour le découpage de messages sur le port 8787")
-        
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "model": MINISTRAL_PATH,
-            "messages": messages,
-            "max_tokens": 6000,
-            "temperature": 0
-        }
-        
-        # Utiliser directement l'URL et le chemin de Ministral pour cette fonction spécifique
-        with httpx.Client(timeout=60.0) as client:
-            response = client.post(MINISTRAL_URL, json=payload, headers=headers)
-            if response.status_code == 200:
-                resp_json = response.json()
-                content = resp_json['choices'][0]['message']['content']
-                
-                # Découper la réponse selon le séparateur
-                parts = content.split('---')
-                
-                # Nettoyer les parties
-                cleaned_parts = [part.strip() for part in parts if part.strip()]
-                
-                # Vérifier si le LLM a respecté le nombre exact de parties
-                if len(cleaned_parts) == recommended_chunks:
-                    logger.info(f"Ministral-8B a correctement divisé le message en {recommended_chunks} parties")
-                    return cleaned_parts
-                
-                # Si le nombre n'est pas exact mais dans les limites, accepter quand même
-                if min_chunks <= len(cleaned_parts) <= max_chunks:
-                    logger.info(f"Ministral-8B a fourni {len(cleaned_parts)} parties au lieu de {recommended_chunks}, mais c'est dans les limites acceptables")
-                    return cleaned_parts
-                    
-                # Si trop ou pas assez de parties, mais au moins une partie valide
-                if cleaned_parts:
-                    logger.warning(f"Ministral-8B a fourni {len(cleaned_parts)} parties au lieu de {recommended_chunks}. Tentative d'ajustement...")
-                    
-                    # Si trop de parties, les regrouper
-                    if len(cleaned_parts) > max_chunks:
-                        logger.info(f"Regroupement de {len(cleaned_parts)} parties en {max_chunks} parties")
-                        merged_parts = []
-                        parts_per_group = len(cleaned_parts) // max_chunks
-                        remainder = len(cleaned_parts) % max_chunks
-                        
-                        start_idx = 0
-                        for i in range(max_chunks):
-                            # Distribuer le reste uniformément
-                            count = parts_per_group + (1 if i < remainder else 0)
-                            end_idx = start_idx + count
-                            merged_part = "\n\n".join(cleaned_parts[start_idx:end_idx])
-                            merged_parts.append(merged_part)
-                            start_idx = end_idx
-                        
-                        return merged_parts
-            else:
-                logger.error(f"Erreur lors de l'appel à Ministral-8B: code {response.status_code}, réponse: {response.text}")
-    except Exception as e:
-        logger.error(f"Erreur lors de l'appel au modèle Ministral-8B pour découper le message: {e}")
-        logger.info("Utilisation de la méthode de secours pour découper le message")
-    
-    # Méthode de secours: découpage simple en parties égales
-    logger.info(f"Utilisation de la méthode de secours pour diviser en {recommended_chunks} parties")
-    
-    # Diviser simplement en parties approximativement égales
+    # Répartir les phrases dans les parties
     parts = []
-    chars_per_part = len(message) // recommended_chunks
+    sentences_per_part = len(sentences) // recommended_chunks
+    remainder = len(sentences) % recommended_chunks
     
+    start_idx = 0
     for i in range(recommended_chunks):
-        start = i * chars_per_part
-        # Pour la dernière partie, prendre tout ce qui reste
-        end = None if i == recommended_chunks - 1 else (i + 1) * chars_per_part
+        # Distribuer le reste uniformément
+        count = sentences_per_part + (1 if i < remainder else 0)
+        end_idx = start_idx + count
         
-        # Si ce n'est pas la dernière partie, essayer de trouver une fin de phrase
-        part = message[start:end]
-        if i < recommended_chunks - 1 and end is not None:
-            # Chercher la dernière fin de phrase dans la partie
-            last_period = part.rfind('. ')
-            if last_period > len(part) * 0.5:  # S'il y a un point dans la seconde moitié
-                part = part[:last_period + 1]  # Inclure le point
-                # Ajuster le message pour la prochaine partie
-                message = message[:start] + message[start + last_period + 1:]
-        
-        parts.append(part.strip())
+        # Combiner les phrases pour cette partie
+        part = " ".join(sentences[start_idx:end_idx])
+        parts.append(part)
+        start_idx = end_idx
     
-    # Filtrer les parties vides
-    return [p for p in parts if p]
+    # Restaurer les sections en gras dans chaque partie
+    final_parts = []
+    for part in parts:
+        for placeholder, original in placeholder_map.items():
+            part = part.replace(placeholder, original)
+        final_parts.append(part)
+    
+    # Vérifier que toutes les parties sont non vides
+    return [p for p in final_parts if p]
 
 # Synchronous chat completion via httpx
 def get_chat_completion(
