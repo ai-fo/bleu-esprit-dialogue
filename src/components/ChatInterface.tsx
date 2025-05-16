@@ -179,7 +179,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           // Ajouter cette partie du message
           const partMessage: ChatMessageProps = {
             role: 'assistant',
-            content: messageParts[index]
+            // Filtrer le séparateur %%PARTIE%% s'il est présent
+            content: messageParts[index].replace(/%%PARTIE%%/g, '')
           };
           setMessages(prev => [...prev, partMessage]);
           
@@ -214,9 +215,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       } else {
         // Comportement original pour les messages non décomposés
         // Ajouter d'abord la réponse principale sans les documents
-        const initialResponse = response.answer.split(/\n\nSi tu veux plus d'informations/)[0];
+        const initialResponse = response.answer.split(/\n\nSi tu veux plus d'informations/)[0].replace(/%%PARTIE%%/g, '');
         const documentPart = response.answer.includes("\n\nSi tu veux plus d'informations") 
-          ? "Si tu veux plus d'informations" + response.answer.split(/\n\nSi tu veux plus d'informations/)[1]
+          ? "Si tu veux plus d'informations" + response.answer.split(/\n\nSi tu veux plus d'informations/)[1].replace(/%%PARTIE%%/g, '')
           : "";
           
         // Afficher d'abord la réponse principale

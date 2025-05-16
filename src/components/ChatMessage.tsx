@@ -62,6 +62,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
       );
     }
 
+    // Filtrer le séparateur %%PARTIE%% s'il existe encore dans le contenu
+    const filteredContent = content.replace(/%%PARTIE%%/g, '');
+
     return (
       <ReactMarkdown
         components={{
@@ -77,7 +80,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
           p: ({ node, ...props }) => <p {...props} className="mb-2" />
         }}
       >
-        {content.replace(/(http:\/\/\S+)/g, '[$1]($1)')}
+        {filteredContent.replace(/(http:\/\/\S+)/g, '[$1]($1)')}
       </ReactMarkdown>
     );
   };
