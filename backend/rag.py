@@ -4,7 +4,7 @@ from pathlib import Path
 import httpx
 import re
 from typing import List, Dict, Tuple
-from config import DEFAULT_MODE, MISTRAL_URL, API_MODEL
+from config import DEFAULT_MODE, MISTRAL_URL, API_MODEL, MISTRAL_PATH
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -206,16 +206,19 @@ def get_local_chat_completion(
 ) -> dict:
     headers = {"Content-Type": "application/json"}
     payload = {
-        "model": model_name,
+        "model": MISTRAL_PATH,
         "messages": messages,
         "max_tokens": max_tokens,
         "temperature": 0
     }
+    
+    logger.info(f"Appel au modèle local: {MISTRAL_PATH} (paramètre original: {model_name})")
 
     try:
         # Augmenter le délai d'attente pour donner plus de temps au serveur
         with httpx.Client(timeout=120.0) as client:
             logger.info(f"Tentative de connexion au serveur LLM local à l'adresse: {api_url}")
+            logger.info(f"Payload envoyé: {payload}")
             response = client.post(api_url, json=payload, headers=headers)
             if response.status_code == 200:
                 return response.json()

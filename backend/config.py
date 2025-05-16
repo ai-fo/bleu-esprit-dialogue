@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration du mode d'appel au modèle
-DEFAULT_MODE = "api"  # Choisir entre "api" (API Mistral) ou "local" (serveur local)
+DEFAULT_MODE = "local"  # Choisir entre "api" (API Mistral) ou "local" (serveur local)
 
 # Configuration API Mistral
 # Pour activer le mode API:
