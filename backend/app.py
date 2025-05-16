@@ -6,7 +6,7 @@ from typing import List, Dict
 from datetime import datetime
 import httpx
 import time
-from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, VERIFICATION_MODEL_PATH, VERIFICATION_MODEL_URL, USE_SEPARATE_VERIFICATION_MODEL
+from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER
 
 # Import fonctions du module rag
 from rag import (
@@ -169,10 +169,6 @@ def chat_endpoint(req: ChatRequest):
     # Message principal sans les liens de documents
     main_answer = answer
     documents_message = ""
-    
-    # Afficher le début de la réponse pour débogage
-    logger.info(f"Réponse du LLM (début): {main_answer[:200]}...")
-    logger.info(f"Longueur de la réponse: {len(main_answer)} caractères")
 
     # Vérifier si nous devons ajouter des liens de documents
     start_doc_check = time.time()
@@ -183,12 +179,7 @@ def chat_endpoint(req: ChatRequest):
             {"role": "user", "content": f"Quels sont les mots-clés ou concepts principaux dans cette question: \"{req.question}\"? Puis vérifie si ces mots-clés apparaissent dans le document suivant:\n\n{context}\n\nSi au moins un mot-clé ou concept important de la question apparaît dans le document, réponds 'OUI', sinon réponds 'NON'."}
         ]
         
-        # Utiliser le modèle de vérification si configuré, sinon utiliser le modèle principal
-        verification_model = VERIFICATION_MODEL_PATH if USE_SEPARATE_VERIFICATION_MODEL else req.model
-        verification_url = VERIFICATION_MODEL_URL if USE_SEPARATE_VERIFICATION_MODEL else None
-        
-        logger.info(f"Utilisation du modèle {verification_model} pour la vérification de documents")
-        verification_resp = get_chat_completion(verification_model, keywords_messages, max_tokens=100, api_url=verification_url)
+        verification_resp = get_chat_completion(req.model, keywords_messages, max_tokens=100)
         verification_text = verification_resp['choices'][0]['message']['content'].upper()
         documents_are_relevant = "OUI" in verification_text
         logger.info(f"Vérification de pertinence par mots-clés: {verification_text}")
