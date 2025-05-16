@@ -41,7 +41,7 @@ PROMPTS_DIR.mkdir(exist_ok=True)  # Création du dossier des prompts
 PIXTRAL_URL = "http://localhost:8085/v1/chat/completions"  # Port pour Pixtral
 MISTRAL_URL = "http://localhost:5263/v1/chat/completions"  # Port pour Mistral
 PIXTRAL_PATH = "/home/llama/models/base_models/Pixtral-12B-2409"  # Modèle Pixtral
-MISTRAL_PATH = "Mistral-Large-Instruct-2407-AWQ"  # Modèle Mistral
+MISTRAL_PATH = "/home/llama/models/base_models/Mistral-Small-3.1-24B-Instruct-2503"  # Modèle Mistral
 
 # Configuration du modèle pour le découpage des messages
 MINISTRAL_URL = "http://localhost:8787/v1/chat/completions"  # Port pour Ministral
