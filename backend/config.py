@@ -42,8 +42,3 @@ PIXTRAL_URL = "http://localhost:8085/v1/chat/completions"  # Port pour Pixtral
 MISTRAL_URL = "http://localhost:5263/v1/chat/completions"  # Port pour Mistral
 PIXTRAL_PATH = "/home/llama/models/base_models/Pixtral-12B-2409"  # Modèle Pixtral
 MISTRAL_PATH = "Mistral-Large-Instruct-2407-AWQ"  # Modèle Mistral
-
-# Configuration pour le modèle de vérification (plus léger et rapide)
-VERIFICATION_MODEL_URL = "http://localhost:8787/v1/chat/completions"  # Port pour Ministral-8B
-VERIFICATION_MODEL_PATH = "/home/llama/models/base_models/Ministral-8B-Instruct-2410"  # Modèle pour les vérifications
-USE_SEPARATE_VERIFICATION_MODEL = True  # Utiliser un modèle distinct pour les vérifications
