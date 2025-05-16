@@ -4,7 +4,7 @@ from pathlib import Path
 import httpx
 import re
 from typing import List, Dict, Tuple
-from config import DEFAULT_MODE, MISTRAL_URL, API_MODEL
+from config import DEFAULT_MODE, MISTRAL_URL, API_MODEL, VERIFICATION_MODEL_PATH, VERIFICATION_MODEL_URL, USE_SEPARATE_VERIFICATION_MODEL
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -93,10 +93,17 @@ def split_long_message(message: str, min_chunks: int = 2, max_chunks: int = 5) -
     
     # Appeler le LLM pour découper le message
     try:
-        # Utiliser le modèle par défaut pour le mode actuel (API ou local)
-        model = API_MODEL if DEFAULT_MODE == "api" else MISTRAL_URL
+        # Utiliser le modèle de vérification plus léger pour le découpage si configuré
+        if USE_SEPARATE_VERIFICATION_MODEL:
+            model = VERIFICATION_MODEL_PATH
+            api_url = VERIFICATION_MODEL_URL
+            logger.info(f"Utilisation du modèle léger {model} pour le découpage de message")
+        else:
+            # Sinon, utiliser le modèle par défaut pour le mode actuel (API ou local)
+            model = API_MODEL if DEFAULT_MODE == "api" else MISTRAL_URL
+            api_url = None
         
-        response = get_chat_completion(model, messages, max_tokens=6000)
+        response = get_chat_completion(model, messages, max_tokens=6000, api_url=api_url)
         content = response['choices'][0]['message']['content']
         
         # Découper la réponse selon le séparateur
@@ -175,13 +182,33 @@ def get_chat_completion(
     model_name: str,
     messages: list,
     max_tokens: int = 6000,
-    api_url: str = MISTRAL_URL
+    api_url: str = None
 ) -> dict:
-    # Check if we use API or local mode
+    # Si une URL spécifique est fournie, l'utiliser directement en mode local
+    if api_url:
+        logger.info(f"Utilisation de l'URL spécifique: {api_url}")
+        return get_local_chat_completion(model_name, messages, max_tokens, api_url)
+    
+    # Sinon, utiliser le mode configuré (API ou local)
     if DEFAULT_MODE == "api":
         return get_api_chat_completion(model_name, messages, max_tokens)
     else:
-        return get_local_chat_completion(model_name, messages, max_tokens, api_url)
+        try:
+            # Essayer d'abord le mode local
+            logger.info("Tentative d'utilisation du mode local pour l'inférence LLM")
+            return get_local_chat_completion(model_name, messages, max_tokens, MISTRAL_URL)
+        except Exception as e:
+            if os.environ.get("MISTRAL_API_KEY"):
+                # Si l'API key est configurée, essayer de basculer vers le mode API en cas d'erreur locale
+                logger.warning(f"Échec du mode local ({str(e)}), basculement vers le mode API")
+                try:
+                    return get_api_chat_completion(model_name, messages, max_tokens)
+                except Exception as api_error:
+                    logger.error(f"Échec également en mode API: {str(api_error)}")
+                    raise Exception(f"Les deux modes de complétion ont échoué. Local: {str(e)}. API: {str(api_error)}")
+            else:
+                # Si pas d'API key, propager simplement l'erreur
+                raise
 
 def get_local_chat_completion(
     model_name: str,
@@ -197,11 +224,24 @@ def get_local_chat_completion(
         "temperature": 0
     }
 
-    with httpx.Client(timeout=60) as client:
-        response = client.post(api_url, json=payload, headers=headers)
-        if response.status_code == 200:
-            return response.json()
-        raise Exception(f"Request failed with status code {response.status_code}: {response.text}")
+    try:
+        # Augmenter le délai d'attente pour donner plus de temps au serveur
+        with httpx.Client(timeout=120.0) as client:
+            logger.info(f"Tentative de connexion au serveur LLM local à l'adresse: {api_url}")
+            response = client.post(api_url, json=payload, headers=headers)
+            if response.status_code == 200:
+                return response.json()
+            logger.error(f"Échec de la requête au serveur LLM avec le code: {response.status_code}")
+            logger.error(f"Réponse du serveur: {response.text}")
+            raise Exception(f"Request failed with status code {response.status_code}: {response.text}")
+    except httpx.ConnectError as e:
+        logger.error(f"Erreur de connexion au serveur LLM: {e}")
+        logger.error(f"Vérifiez que le serveur LLM est en cours d'exécution à l'adresse {api_url}")
+        logger.error(f"Commande pour vérifier: curl -X GET {api_url}")
+        raise Exception(f"Impossible de se connecter au serveur LLM à l'adresse {api_url}. Vérifiez que le serveur est en cours d'exécution et que l'URL est correcte dans config.py.")
+    except Exception as e:
+        logger.error(f"Erreur lors de l'appel du serveur LLM: {str(e)}")
+        raise Exception(f"Request failed: {str(e)}")
 
 def get_api_chat_completion(
     model_name: str,
