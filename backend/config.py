@@ -26,7 +26,7 @@ API_MODEL = "mistral-small-latest"  # Modèle par défaut pour l'API Mistral
 
 # Modèles locaux disponibles - format: {"nom_affiché": ("chemin/au/modèle", "port")}
 MODELS = {
-    "mistral-large": ("Mistral-Large-Instruct-2407-AWQ", "5263"),
+    "mistral-large": ("/home/llama/models/base_models/Mistral-Large-Instruct-2407-AWQ", "5263"),
     "ministral-8b": ("/home/llama/models/base_models/Ministral-8B-Instruct-2410", "8787"),
     # Ajoutez vos autres modèles ici
 }
@@ -36,7 +36,7 @@ MODELS = {
 #----------------------------------------------
 
 # 1. Modèle principal pour la génération de réponses
-MAIN_MODEL = "mistral-large"
+MAIN_MODEL = "ministral-8b"
 
 # 2. Modèle pour les vérifications (pertinence des documents)
 USE_SEPARATE_VERIFICATION_MODEL = True  # Utiliser un modèle distinct pour les vérifications
