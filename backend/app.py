@@ -162,6 +162,11 @@ def chat_endpoint(req: ChatRequest):
     llm_time = time.time() - start_llm
     logger.info(f"Temps génération LLM: {llm_time:.2f}s")
     
+    # Afficher la sortie complète du LLM
+    logger.info("=== SORTIE COMPLÈTE DU LLM ===")
+    logger.info(answer)
+    logger.info("=== FIN SORTIE LLM ===")
+    
     # Déterminer si c'est une question technique qui nécessite vraiment des documents (présence de fichiers utilisés)
     is_technical_question = len(files) > 0
     logger.info(f"Question technique: {is_technical_question}")
@@ -236,6 +241,13 @@ def chat_endpoint(req: ChatRequest):
     split_time = time.time() - start_split
     logger.info(f"Message principal décomposé en {len(message_parts)} parties")
     logger.info(f"Temps découpage message: {split_time:.2f}s")
+    
+    # Afficher tous les morceaux découpés
+    logger.info("=== MORCEAUX DU MESSAGE DÉCOUPÉS ===")
+    for i, part in enumerate(message_parts):
+        logger.info(f"--- MORCEAU {i+1}/{len(message_parts)} ---")
+        logger.info(part)
+    logger.info("=== FIN MORCEAUX DÉCOUPÉS ===")
     
     # Ajouter le message de documents comme une partie séparée si présent
     if documents_message:
