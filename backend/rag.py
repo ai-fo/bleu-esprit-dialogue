@@ -4,7 +4,7 @@ from pathlib import Path
 import httpx
 import re
 from typing import List, Dict, Tuple
-from config import DEFAULT_MODE, MISTRAL_URL, API_MODEL
+from config import DEFAULT_MODE, MISTRAL_URL, API_MODEL, VERIFICATION_MODEL_PATH, VERIFICATION_MODEL_URL, USE_SEPARATE_VERIFICATION_MODEL
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -93,10 +93,17 @@ def split_long_message(message: str, min_chunks: int = 2, max_chunks: int = 5) -
     
     # Appeler le LLM pour découper le message
     try:
-        # Utiliser le modèle par défaut pour le mode actuel (API ou local)
-        model = API_MODEL if DEFAULT_MODE == "api" else MISTRAL_URL
+        # Utiliser le modèle de vérification plus léger pour le découpage si configuré
+        if USE_SEPARATE_VERIFICATION_MODEL:
+            model = VERIFICATION_MODEL_PATH
+            api_url = VERIFICATION_MODEL_URL
+            logger.info(f"Utilisation du modèle léger {model} pour le découpage de message")
+        else:
+            # Sinon, utiliser le modèle par défaut pour le mode actuel (API ou local)
+            model = API_MODEL if DEFAULT_MODE == "api" else MISTRAL_URL
+            api_url = None
         
-        response = get_chat_completion(model, messages, max_tokens=6000)
+        response = get_chat_completion(model, messages, max_tokens=6000, api_url=api_url)
         content = response['choices'][0]['message']['content']
         
         # Découper la réponse selon le séparateur
@@ -175,16 +182,21 @@ def get_chat_completion(
     model_name: str,
     messages: list,
     max_tokens: int = 6000,
-    api_url: str = MISTRAL_URL
+    api_url: str = None
 ) -> dict:
-    # Check if we use API or local mode
+    # Si une URL spécifique est fournie, l'utiliser directement en mode local
+    if api_url:
+        logger.info(f"Utilisation de l'URL spécifique: {api_url}")
+        return get_local_chat_completion(model_name, messages, max_tokens, api_url)
+    
+    # Sinon, utiliser le mode configuré (API ou local)
     if DEFAULT_MODE == "api":
         return get_api_chat_completion(model_name, messages, max_tokens)
     else:
         try:
             # Essayer d'abord le mode local
             logger.info("Tentative d'utilisation du mode local pour l'inférence LLM")
-            return get_local_chat_completion(model_name, messages, max_tokens, api_url)
+            return get_local_chat_completion(model_name, messages, max_tokens, MISTRAL_URL)
         except Exception as e:
             if os.environ.get("MISTRAL_API_KEY"):
                 # Si l'API key est configurée, essayer de basculer vers le mode API en cas d'erreur locale
