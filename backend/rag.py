@@ -4,7 +4,7 @@ from pathlib import Path
 import httpx
 import re
 from typing import List, Dict, Tuple
-from config import DEFAULT_MODE, MISTRAL_URL, API_MODEL, MISTRAL_PATH
+from config import DEFAULT_MODE, MISTRAL_URL, API_MODEL, MISTRAL_PATH, MINISTRAL_URL, MINISTRAL_PATH
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -91,57 +91,67 @@ def split_long_message(message: str, min_chunks: int = 2, max_chunks: int = 5) -
         {"role": "user", "content": f"Divise ce texte en EXACTEMENT {recommended_chunks} parties de taille similaire:\n\n{message}"}
     ]
     
-    # Appeler le LLM pour découper le message
+    # Appeler le LLM pour découper le message en utilisant spécifiquement Ministral-8B
     try:
-        # Utiliser le modèle par défaut pour le mode actuel (API ou local)
-        model = API_MODEL if DEFAULT_MODE == "api" else MISTRAL_URL
+        logger.info(f"Utilisation du modèle Ministral-8B pour le découpage de messages sur le port 8787")
         
-        response = get_chat_completion(model, messages, max_tokens=6000)
-        content = response['choices'][0]['message']['content']
+        headers = {"Content-Type": "application/json"}
+        payload = {
+            "model": MINISTRAL_PATH,
+            "messages": messages,
+            "max_tokens": 6000,
+            "temperature": 0
+        }
         
-        # Découper la réponse selon le séparateur
-        parts = content.split('---')
-        
-        # Nettoyer les parties
-        cleaned_parts = [part.strip() for part in parts if part.strip()]
-        
-        # Vérifier si le LLM a respecté le nombre exact de parties
-        if len(cleaned_parts) == recommended_chunks:
-            logger.info(f"LLM a correctement divisé le message en {recommended_chunks} parties")
-            return cleaned_parts
-        
-        # Si le nombre n'est pas exact mais dans les limites, accepter quand même
-        if min_chunks <= len(cleaned_parts) <= max_chunks:
-            logger.info(f"LLM a fourni {len(cleaned_parts)} parties au lieu de {recommended_chunks}, mais c'est dans les limites acceptables")
-            return cleaned_parts
-            
-        # Si trop ou pas assez de parties, mais au moins une partie valide
-        if cleaned_parts:
-            logger.warning(f"LLM a fourni {len(cleaned_parts)} parties au lieu de {recommended_chunks}. Tentative d'ajustement...")
-            
-            # Si trop de parties, les regrouper
-            if len(cleaned_parts) > max_chunks:
-                logger.info(f"Regroupement de {len(cleaned_parts)} parties en {max_chunks} parties")
-                merged_parts = []
-                parts_per_group = len(cleaned_parts) // max_chunks
-                remainder = len(cleaned_parts) % max_chunks
+        # Utiliser directement l'URL et le chemin de Ministral pour cette fonction spécifique
+        with httpx.Client(timeout=60.0) as client:
+            response = client.post(MINISTRAL_URL, json=payload, headers=headers)
+            if response.status_code == 200:
+                resp_json = response.json()
+                content = resp_json['choices'][0]['message']['content']
                 
-                start_idx = 0
-                for i in range(max_chunks):
-                    # Distribuer le reste uniformément
-                    count = parts_per_group + (1 if i < remainder else 0)
-                    end_idx = start_idx + count
-                    merged_part = "\n\n".join(cleaned_parts[start_idx:end_idx])
-                    merged_parts.append(merged_part)
-                    start_idx = end_idx
+                # Découper la réponse selon le séparateur
+                parts = content.split('---')
                 
-                return merged_parts
-            
-            # Si pas assez de parties, diviser les plus longues
-            if len(cleaned_parts) < min_chunks:
-                logger.info(f"Pas assez de parties ({len(cleaned_parts)}), utilisation de la méthode de secours")
+                # Nettoyer les parties
+                cleaned_parts = [part.strip() for part in parts if part.strip()]
+                
+                # Vérifier si le LLM a respecté le nombre exact de parties
+                if len(cleaned_parts) == recommended_chunks:
+                    logger.info(f"Ministral-8B a correctement divisé le message en {recommended_chunks} parties")
+                    return cleaned_parts
+                
+                # Si le nombre n'est pas exact mais dans les limites, accepter quand même
+                if min_chunks <= len(cleaned_parts) <= max_chunks:
+                    logger.info(f"Ministral-8B a fourni {len(cleaned_parts)} parties au lieu de {recommended_chunks}, mais c'est dans les limites acceptables")
+                    return cleaned_parts
+                    
+                # Si trop ou pas assez de parties, mais au moins une partie valide
+                if cleaned_parts:
+                    logger.warning(f"Ministral-8B a fourni {len(cleaned_parts)} parties au lieu de {recommended_chunks}. Tentative d'ajustement...")
+                    
+                    # Si trop de parties, les regrouper
+                    if len(cleaned_parts) > max_chunks:
+                        logger.info(f"Regroupement de {len(cleaned_parts)} parties en {max_chunks} parties")
+                        merged_parts = []
+                        parts_per_group = len(cleaned_parts) // max_chunks
+                        remainder = len(cleaned_parts) % max_chunks
+                        
+                        start_idx = 0
+                        for i in range(max_chunks):
+                            # Distribuer le reste uniformément
+                            count = parts_per_group + (1 if i < remainder else 0)
+                            end_idx = start_idx + count
+                            merged_part = "\n\n".join(cleaned_parts[start_idx:end_idx])
+                            merged_parts.append(merged_part)
+                            start_idx = end_idx
+                        
+                        return merged_parts
+            else:
+                logger.error(f"Erreur lors de l'appel à Ministral-8B: code {response.status_code}, réponse: {response.text}")
     except Exception as e:
-        logger.error(f"Erreur lors de l'appel au LLM pour découper le message: {e}")
+        logger.error(f"Erreur lors de l'appel au modèle Ministral-8B pour découper le message: {e}")
+        logger.info("Utilisation de la méthode de secours pour découper le message")
     
     # Méthode de secours: découpage simple en parties égales
     logger.info(f"Utilisation de la méthode de secours pour diviser en {recommended_chunks} parties")

@@ -6,7 +6,7 @@ from typing import List, Dict
 from datetime import datetime
 import httpx
 import time
-from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER
+from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, MINISTRAL_PATH, MINISTRAL_URL
 
 # Import fonctions du module rag
 from rag import (

@@ -42,3 +42,7 @@ PIXTRAL_URL = "http://localhost:8085/v1/chat/completions"  # Port pour Pixtral
 MISTRAL_URL = "http://localhost:5263/v1/chat/completions"  # Port pour Mistral
 PIXTRAL_PATH = "/home/llama/models/base_models/Pixtral-12B-2409"  # Modèle Pixtral
 MISTRAL_PATH = "Mistral-Large-Instruct-2407-AWQ"  # Modèle Mistral
+
+# Configuration du modèle pour le découpage des messages
+MINISTRAL_URL = "http://localhost:8787/v1/chat/completions"  # Port pour Ministral
+MINISTRAL_PATH = "/home/llama/models/base_models/Ministral-8B-Instruct-2410"  # Modèle Ministral
