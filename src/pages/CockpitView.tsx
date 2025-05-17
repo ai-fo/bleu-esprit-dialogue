@@ -28,7 +28,7 @@ interface AppStatistics {
   name: string;
   iconComponent: React.ReactNode;
   incidentCount: number;
-  callerCount: number; // Ajout du nombre d'appelants
+  callerCount: number;
   status: 'ok' | 'incident';
 }
 
@@ -47,15 +47,6 @@ const CockpitView = () => {
   const [preventDuplicateAlerts, setPreventDuplicateAlerts] = useState(true);
   const [displayView, setDisplayView] = useState<'table' | 'cards'>('table');
   const { toast } = useToast();
-  
-  // Calculate total callers across all applications
-  const totalCallers = useMemo(() => {
-    let total = 0;
-    appStatistics.forEach(app => {
-      total += app.callerCount;
-    });
-    return total;
-  }, [incidents]);
   
   // Generate application statistics based on incidents
   const appStatistics = useMemo<AppStatistics[]>(() => {
