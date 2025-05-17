@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { loadIncidentsFromStorage } from '@/utils/incidentStorage';
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Bell, AlertTriangle, PhoneCall, Users } from 'lucide-react';
+import { Clock, Bell, AlertTriangle, PhoneCall, Users, MessageSquare, Calendar, Activity } from 'lucide-react';
 import { AppIncident, appIncidents as defaultIncidentList } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
 
@@ -36,6 +35,14 @@ interface AppStatistics {
 interface HourlyData {
   hour: string;
   incidents: number;
+}
+
+// Type for caller statistics
+interface CallerStatistics {
+  currentCallers: number;
+  dailyCallers: number;
+  chatbotMessages: number;
+  weeklyCallers: number;
 }
 
 const CockpitView = () => {
@@ -68,7 +75,7 @@ const CockpitView = () => {
         name: app.name,
         iconComponent: app.icon,
         incidentCount: randomCount,
-        callerCount: randomCallerCount, // Nombre d'appelants par application
+        callerCount: randomCallerCount,
         status: currentStatus
       });
     });
@@ -81,6 +88,16 @@ const CockpitView = () => {
   const totalCallers = useMemo(() => {
     return appStatistics.reduce((total, app) => total + app.callerCount, 0);
   }, [appStatistics]);
+  
+  // Generate caller statistics with more detailed information
+  const callerStats = useMemo<CallerStatistics>(() => {
+    return {
+      currentCallers: totalCallers, // Current active callers
+      dailyCallers: totalCallers + Math.floor(Math.random() * 50) + 20, // Daily total (current + resolved)
+      chatbotMessages: Math.floor(Math.random() * 200) + 100, // Random number of chatbot messages
+      weeklyCallers: totalCallers * 5 + Math.floor(Math.random() * 100) // Approximation of weekly callers
+    };
+  }, [totalCallers]);
   
   // Generate hourly data for the chart
   const hourlyData = useMemo(() => {
@@ -197,19 +214,55 @@ const CockpitView = () => {
             </div>
           </div>
           
-          {/* Caller Summary Card */}
+          {/* Caller Statistics Card - Enhanced version */}
           <Card className="bg-[#252A37] border-[#9b87f5]/20 text-white shadow-lg mb-6">
-            <CardContent className="p-4 md:p-6 flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="p-3 mr-4 rounded-full bg-[#9b87f5]/20">
-                  <Users className="h-8 w-8 text-[#9b87f5]" />
+            <CardContent className="p-4 md:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Current Callers */}
+                <div className="flex items-center p-4 bg-[#2A3040] rounded-lg">
+                  <div className="p-3 mr-4 rounded-full bg-[#9b87f5]/20">
+                    <Users className="h-8 w-8 text-[#9b87f5]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">Appelants en cours</h3>
+                    <p className="text-2xl font-bold text-white">{callerStats.currentCallers}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-400">Total Appelants</h3>
-                  <p className="text-3xl font-bold text-white">{totalCallers}</p>
+                
+                {/* Daily Callers */}
+                <div className="flex items-center p-4 bg-[#2A3040] rounded-lg">
+                  <div className="p-3 mr-4 rounded-full bg-[#9b87f5]/20">
+                    <Calendar className="h-8 w-8 text-[#9b87f5]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">Appelants aujourd'hui</h3>
+                    <p className="text-2xl font-bold text-white">{callerStats.dailyCallers}</p>
+                  </div>
+                </div>
+                
+                {/* Chatbot Messages */}
+                <div className="flex items-center p-4 bg-[#2A3040] rounded-lg">
+                  <div className="p-3 mr-4 rounded-full bg-[#9b87f5]/20">
+                    <MessageSquare className="h-8 w-8 text-[#9b87f5]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">Messages chatbot</h3>
+                    <p className="text-2xl font-bold text-white">{callerStats.chatbotMessages}</p>
+                  </div>
+                </div>
+                
+                {/* Weekly Callers */}
+                <div className="flex items-center p-4 bg-[#2A3040] rounded-lg">
+                  <div className="p-3 mr-4 rounded-full bg-[#9b87f5]/20">
+                    <Activity className="h-8 w-8 text-[#9b87f5]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">Appelants hebdo</h3>
+                    <p className="text-2xl font-bold text-white">{callerStats.weeklyCallers}</p>
+                  </div>
                 </div>
               </div>
-              <div>
+              <div className="mt-4 flex justify-end">
                 <Button 
                   className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
                   onClick={() => {
