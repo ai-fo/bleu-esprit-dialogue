@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -190,6 +189,8 @@ const Index = () => {
               onFirstMessage={handleFirstMessage} 
               trendingQuestions={TRENDING_QUESTIONS}
               theme="user" 
+              source="user"
+              trendingQuestionsTitle="Questions fréquentes posées par les utilisateurs"
             />
           </div>
         </div>

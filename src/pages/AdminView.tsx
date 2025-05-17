@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -193,7 +192,8 @@ const AdminView = () => {
               onFirstMessage={handleFirstMessage} 
               trendingQuestions={ADMIN_TRENDING_QUESTIONS}
               theme="technician"
-              trendingQuestionsTitle="Questions tendance aujourd'hui posées par les admins"
+              trendingQuestionsTitle="Questions fréquentes posées par les admins"
+              source="admin"
             />
           </div>
         </div>

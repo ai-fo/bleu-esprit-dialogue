@@ -7,7 +7,8 @@ import ReactMarkdown from 'react-markdown';
 export interface ChatMessageProps {
   role: 'user' | 'assistant';
   content: string;
-  id?: string;
+  id?: string | number;
+  message_id?: number;  // ID du message stocké en base de données
   createdAt?: string;
   onNewChunkDisplayed?: () => void;
   theme?: 'user' | 'technician';
@@ -18,6 +19,8 @@ export interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = ({ 
   role, 
   content, 
+  id,
+  message_id,
   onNewChunkDisplayed, 
   theme = 'user',
   isLoading = false,
@@ -109,7 +112,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
       {!isUser && !isLoading && isLastInSequence && (
         <div className="mt-1.5 flex items-center space-x-2 px-1">
           <ReliabilityIndicator score={95} />
-          <FeedbackButtons messageId="1" theme={theme} />
+          <FeedbackButtons messageId={message_id || id || -1} theme={theme} />
         </div>
       )}
     </div>

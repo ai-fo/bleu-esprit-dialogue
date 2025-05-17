@@ -2,11 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional
 from datetime import datetime
 import httpx
 import time
 import random
+import traceback
 from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, MINISTRAL_PATH, MINISTRAL_URL
 
 # Import fonctions du module rag
@@ -17,6 +18,18 @@ from rag import (
     check_api_key,
     split_long_message
 )
+
+# Import fonctions du module database
+from database import (
+    save_session,
+    save_message,
+    save_feedback,
+    save_error,
+    get_trending_questions
+)
+
+# Import fonctions du module trending_analysis
+from trending_analysis import analyze_and_update_trending_questions
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -40,6 +53,7 @@ class ChatRequest(BaseModel):
     session_id: str
     model: str = MISTRAL_PATH
     max_tokens: int = 6000
+    source: str = 'user'  # 'user' ou 'admin'
 
 class ChatResponse(BaseModel):
     answer: str
@@ -47,9 +61,21 @@ class ChatResponse(BaseModel):
     message_parts: List[str] = []  # Liste des parties du message si décomposé
     performance: Dict[str, float] = {}  # Mesures de performance
     typing_delays: List[float] = []  # Délais de frappe aléatoires entre les parties de message
+    message_id: int = -1  # ID du message dans la base de données
 
 class ClearHistoryRequest(BaseModel):
     session_id: str
+
+class FeedbackRequest(BaseModel):
+    message_id: int
+    rating: int
+    comment: str = None
+
+class TrendingQuestion(BaseModel):
+    question: str
+    count: int
+    source: str = 'all'
+    application: Optional[str] = None
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -81,6 +107,13 @@ def chat_endpoint(req: ChatRequest):
     """Combine RAG context with LLM response for a chatbot hotline with conversation history."""
     # Démarrer le minuteur global
     start_total = time.time()
+    
+    # Enregistrer ou mettre à jour la session dans la base de données avec la source
+    try:
+        save_session(req.session_id, req.source)
+    except Exception as e:
+        logger.error(f"Erreur lors de l'enregistrement de la session: {e}")
+        save_error("database_error", str(e), req.session_id, traceback.format_exc())
     
     # Initialize conversation history if it doesn't exist
     if req.session_id not in CONVERSATION_CACHE:
@@ -289,6 +322,44 @@ def chat_endpoint(req: ChatRequest):
     combined_answer = "\n\n".join(message_parts)
     CONVERSATION_CACHE[req.session_id].append({"role": "assistant", "content": combined_answer})
     
+    # Sauvegarder le message de l'utilisateur dans la base de données
+    user_message_id = -1
+    assistant_message_id = -1
+    try:
+        # Enregistrer le message de l'utilisateur avec la source
+        user_message_id = save_message(
+            session_id=req.session_id, 
+            role="user", 
+            content=req.question,
+            source=req.source
+        )
+        
+        # Enregistrer la réponse de l'assistant avec ses parties et les fichiers sources
+        assistant_message_id = save_message(
+            session_id=req.session_id, 
+            role="assistant", 
+            content=combined_answer, 
+            message_parts=message_parts,
+            files_used=files,
+            source=req.source
+        )
+        
+        # Mettre à jour les questions tendances en arrière-plan après chaque nouveau message
+        # Exécution en arrière-plan pour ne pas ralentir la réponse
+        try:
+            # Lancer l'analyse en arrière-plan avec la source
+            logger.info(f"Lancement de l'analyse des tendances en arrière-plan pour la source: {req.source}")
+            threading.Thread(
+                target=analyze_and_update_trending_questions,
+                args=(3, req.source),  # Limiter à 3 questions tendances et spécifier la source
+                daemon=True
+            ).start()
+        except Exception as e:
+            logger.error(f"Erreur lors du lancement de l'analyse des tendances: {e}")
+    except Exception as e:
+        logger.error(f"Erreur lors de l'enregistrement des messages dans la base de données: {e}")
+        save_error("database_error", str(e), req.session_id, traceback.format_exc())
+    
     # Journaliser l'état de l'historique pour le débogage
     history_count = len(CONVERSATION_CACHE[req.session_id])
     logger.info(f"Historique mis à jour: {history_count} messages au total pour la session {req.session_id}")
@@ -311,7 +382,8 @@ def chat_endpoint(req: ChatRequest):
             "doc_check_time": round(doc_check_time, 2),
             "split_time": round(split_time, 2)
         },
-        typing_delays=typing_delays
+        typing_delays=typing_delays,
+        message_id=assistant_message_id
     )
 
 @app.post("/clear_history")
@@ -323,6 +395,55 @@ def clear_history_endpoint(req: ClearHistoryRequest):
         return {"success": True, "message": "Conversation history cleared"}
     return {"success": False, "message": "Session not found"}
 
+@app.post("/feedback")
+def feedback_endpoint(req: FeedbackRequest):
+    """Enregistrer un feedback utilisateur pour un message."""
+    try:
+        success = save_feedback(req.message_id, req.rating, req.comment)
+        if success:
+            logger.info(f"Feedback enregistré pour le message {req.message_id}: {req.rating}/5")
+            return {"success": True, "message": "Feedback enregistré avec succès"}
+        else:
+            logger.error(f"Échec de l'enregistrement du feedback pour le message {req.message_id}")
+            return {"success": False, "message": "Échec de l'enregistrement du feedback"}
+    except Exception as e:
+        error_message = f"Erreur lors de l'enregistrement du feedback: {str(e)}"
+        logger.error(error_message)
+        save_error("feedback_error", error_message, stack_trace=traceback.format_exc())
+        return {"success": False, "message": error_message}
+
+@app.get("/trending_questions", response_model=List[TrendingQuestion])
+def get_trending_questions_endpoint(limit: int = 3, force_update: bool = False, source: str = 'all'):
+    """Récupérer les questions tendances d'aujourd'hui.
+    
+    Args:
+        limit: Nombre maximum de questions à récupérer
+        force_update: Forcer la mise à jour des tendances
+        source: Source des questions ('user', 'admin' ou 'all')
+    """
+    try:
+        # Mettre à jour les tendances si demandé
+        if force_update:
+            logger.info(f"Mise à jour forcée des questions tendances pour la source: {source}")
+            trending_questions = analyze_and_update_trending_questions(limit)
+        else:
+            # Récupérer les questions tendances existantes pour la source spécifiée
+            trending_questions = get_trending_questions(limit, source)
+            
+            # Si aucune question tendance n'existe, en générer
+            if not trending_questions:
+                logger.info(f"Aucune question tendance trouvée pour la source {source}, analyse en cours...")
+                trending_questions = analyze_and_update_trending_questions(limit)
+        
+        logger.info(f"Questions tendances récupérées: {trending_questions}")
+        return trending_questions
+    except Exception as e:
+        error_message = f"Erreur lors de la récupération des questions tendances: {str(e)}"
+        logger.error(error_message)
+        save_error("trending_error", error_message, stack_trace=traceback.format_exc())
+        return []
+
 if __name__ == "__main__":
     import uvicorn
+    import threading
     uvicorn.run(app, host="0.0.0.0", port=8091) 
