@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { loadIncidentsFromStorage } from '@/utils/incidentStorage';
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Bell, AlertTriangle, PhoneCall } from 'lucide-react';
+import { Clock, Bell, AlertTriangle, PhoneCall, Users } from 'lucide-react';
 import { AppIncident, appIncidents as defaultIncidentList } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
 
@@ -28,6 +28,7 @@ interface AppStatistics {
   name: string;
   iconComponent: React.ReactNode;
   incidentCount: number;
+  callerCount: number; // Ajout du nombre d'appelants
   status: 'ok' | 'incident';
 }
 
@@ -47,6 +48,15 @@ const CockpitView = () => {
   const [displayView, setDisplayView] = useState<'table' | 'cards'>('table');
   const { toast } = useToast();
   
+  // Calculate total callers across all applications
+  const totalCallers = useMemo(() => {
+    let total = 0;
+    appStatistics.forEach(app => {
+      total += app.callerCount;
+    });
+    return total;
+  }, [incidents]);
+  
   // Generate application statistics based on incidents
   const appStatistics = useMemo<AppStatistics[]>(() => {
     const stats: AppStatistics[] = [];
@@ -59,12 +69,15 @@ const CockpitView = () => {
       // Count how many times this application appears with 'incident' status
       const currentStatus = incidents.find(inc => inc.id === app.id)?.status || 'ok';
       const randomCount = currentStatus === 'incident' ? Math.floor(Math.random() * 45) + 5 : 0;
+      // Génération d'un nombre aléatoire d'appelants par application
+      const randomCallerCount = currentStatus === 'incident' ? Math.floor(randomCount * 1.5) : 0;
       
       stats.push({
         id: app.id,
         name: app.name,
         iconComponent: app.icon,
         incidentCount: randomCount,
+        callerCount: randomCallerCount, // Nombre d'appelants par application
         status: currentStatus
       });
     });
@@ -72,6 +85,11 @@ const CockpitView = () => {
     // Sort by incident count (descending)
     return stats.sort((a, b) => b.incidentCount - a.incidentCount);
   }, [incidents]);
+  
+  // Calculate total callers across all applications
+  const totalCallers = useMemo(() => {
+    return appStatistics.reduce((total, app) => total + app.callerCount, 0);
+  }, [appStatistics]);
   
   // Generate hourly data for the chart
   const hourlyData = useMemo(() => {
@@ -188,6 +206,34 @@ const CockpitView = () => {
             </div>
           </div>
           
+          {/* Caller Summary Card */}
+          <Card className="bg-[#252A37] border-[#9b87f5]/20 text-white shadow-lg mb-6">
+            <CardContent className="p-4 md:p-6 flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-3 mr-4 rounded-full bg-[#9b87f5]/20">
+                  <Users className="h-8 w-8 text-[#9b87f5]" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-gray-400">Total Appelants</h3>
+                  <p className="text-3xl font-bold text-white">{totalCallers}</p>
+                </div>
+              </div>
+              <div>
+                <Button 
+                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+                  onClick={() => {
+                    toast({
+                      title: "Export en cours",
+                      description: "Les données des appelants sont en cours d'export"
+                    });
+                  }}
+                >
+                  <PhoneCall className="w-4 h-4 mr-2" /> Exporter les données
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Applications panel */}
             <div className="md:col-span-2">
@@ -206,6 +252,7 @@ const CockpitView = () => {
                           <TableRow className="border-[#9b87f5]/20 hover:bg-[#2A3040]">
                             <TableHead className="text-[#D6BCFA]">Application</TableHead>
                             <TableHead className="text-[#D6BCFA]">Incidents déclarés</TableHead>
+                            <TableHead className="text-[#D6BCFA]">Appelants</TableHead>
                             <TableHead className="text-[#D6BCFA]">Statut</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -225,6 +272,9 @@ const CockpitView = () => {
                               </TableCell>
                               <TableCell className="font-bold">
                                 {app.incidentCount}
+                              </TableCell>
+                              <TableCell className="font-bold">
+                                {app.callerCount}
                               </TableCell>
                               <TableCell>
                                 {app.status === 'ok' ? (
@@ -266,10 +316,19 @@ const CockpitView = () => {
                                 </span>
                               )}
                             </div>
-                            <div className="mt-3 text-center">
-                              <span className="text-2xl font-bold text-[#9b87f5]">
-                                {app.incidentCount} incidents
-                              </span>
+                            <div className="flex justify-between mt-3">
+                              <div className="text-center">
+                                <span className="text-sm text-gray-400">Incidents</span>
+                                <p className="text-xl font-bold text-[#9b87f5]">
+                                  {app.incidentCount}
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <span className="text-sm text-gray-400">Appelants</span>
+                                <p className="text-xl font-bold text-[#9b87f5]">
+                                  {app.callerCount}
+                                </p>
+                              </div>
                             </div>
                           </CardContent>
                         </Card>
