@@ -86,18 +86,18 @@ const CockpitView = () => {
   
   // Calculate total callers across all applications
   const totalCallers = useMemo(() => {
-    return appStatistics.reduce((total, app) => total + app.callerCount, 0);
-  }, [appStatistics]);
+    return 8; // Fixed value for current callers as requested
+  }, []);
   
-  // Generate caller statistics with more detailed information
+  // Generate caller statistics with specific requested values
   const callerStats = useMemo<CallerStatistics>(() => {
     return {
-      currentCallers: totalCallers, // Current active callers
-      dailyCallers: totalCallers + Math.floor(Math.random() * 50) + 20, // Daily total (current + resolved)
-      chatbotMessages: Math.floor(Math.random() * 200) + 100, // Random number of chatbot messages
-      weeklyCallers: totalCallers * 5 + Math.floor(Math.random() * 100) // Approximation of weekly callers
+      currentCallers: 8,       // Fixed value as requested
+      dailyCallers: 123,       // Fixed value as requested
+      chatbotMessages: Math.floor(Math.random() * 200) + 100, // Keep random chatbot messages
+      weeklyCallers: 180       // Fixed value as requested
     };
-  }, [totalCallers]);
+  }, []);
   
   // Generate hourly data for the chart
   const hourlyData = useMemo(() => {
