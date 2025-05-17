@@ -19,16 +19,16 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { loadIncidentsFromStorage } from '@/utils/incidentStorage';
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Bell, AlertTriangle, PhoneCall } from 'lucide-react';
-import { AppIncident } from '@/components/IncidentStatus';
+import { AppIncident, appIncidents as defaultIncidentList } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
 
-// Type for incident analytics data
-interface IncidentAnalytic {
+// Type for application statistics
+interface AppStatistics {
   id: string;
   name: string;
-  count: number;
-  firstReported: Date;
-  resolvedAt: Date | null;
+  iconComponent: React.ReactNode;
+  incidentCount: number;
+  status: 'ok' | 'incident';
 }
 
 // Type for hourly data
@@ -47,43 +47,30 @@ const CockpitView = () => {
   const [displayView, setDisplayView] = useState<'table' | 'cards'>('table');
   const { toast } = useToast();
   
-  // Simulated data for incident analytics
-  const [incidentAnalytics, setIncidentAnalytics] = useState<IncidentAnalytic[]>([]);
-
-  // Generate mock analytics data based on actual incidents
-  useEffect(() => {
-    const mockAnalytics: IncidentAnalytic[] = incidents
-      .filter(inc => inc.status === 'incident')
-      .map((inc, index) => {
-        // Random count between 5 and 50
-        const count = Math.floor(Math.random() * 45) + 5;
-        
-        // Random first reported time in the last 24 hours
-        const firstReported = new Date();
-        firstReported.setHours(firstReported.getHours() - Math.floor(Math.random() * 24));
-        
-        // 50% chance of being resolved
-        const resolved = Math.random() > 0.5;
-        let resolvedAt = null;
-        if (resolved) {
-          resolvedAt = new Date(firstReported);
-          resolvedAt.setHours(resolvedAt.getHours() + Math.floor(Math.random() * 8) + 1);
-        }
-        
-        return {
-          id: inc.id,
-          name: inc.name,
-          count,
-          firstReported,
-          resolvedAt
-        };
-      });
-      
-    // Sort by count (descending)
-    mockAnalytics.sort((a, b) => b.count - a.count);
+  // Generate application statistics based on incidents
+  const appStatistics = useMemo<AppStatistics[]>(() => {
+    const stats: AppStatistics[] = [];
     
-    // Take top 10
-    setIncidentAnalytics(mockAnalytics.slice(0, 10));
+    // Get the full list of applications from default incident list
+    const defaultApps = defaultIncidentList;
+    
+    // Create statistics for each application
+    defaultApps.forEach(app => {
+      // Count how many times this application appears with 'incident' status
+      const currentStatus = incidents.find(inc => inc.id === app.id)?.status || 'ok';
+      const randomCount = currentStatus === 'incident' ? Math.floor(Math.random() * 45) + 5 : 0;
+      
+      stats.push({
+        id: app.id,
+        name: app.name,
+        iconComponent: app.icon,
+        incidentCount: randomCount,
+        status: currentStatus
+      });
+    });
+    
+    // Sort by incident count (descending)
+    return stats.sort((a, b) => b.incidentCount - a.incidentCount);
   }, [incidents]);
   
   // Generate hourly data for the chart
@@ -105,27 +92,27 @@ const CockpitView = () => {
   }, []);
   
   // Function to trigger alerts
-  const triggerAlert = (incident: IncidentAnalytic) => {
-    if (incident.count > notificationThreshold) {
+  const triggerAlert = (app: AppStatistics) => {
+    if (app.incidentCount > notificationThreshold) {
       toast({
         title: "Alert Notification Sent!",
-        description: `Email and SMS alerts sent for ${incident.name} (${incident.count} reports)`
+        description: `Email and SMS alerts sent for ${app.name} (${app.incidentCount} reports)`
       });
     }
   };
   
   // Check and trigger alerts on threshold changes or new data
   useEffect(() => {
-    // Find incidents over threshold
-    const alertIncidents = incidentAnalytics.filter(inc => inc.count > notificationThreshold);
+    // Find applications over threshold
+    const alertApps = appStatistics.filter(app => app.incidentCount > notificationThreshold);
     
-    if (alertIncidents.length > 0) {
-      if (!preventDuplicateAlerts || localStorage.getItem('lastAlerted') !== alertIncidents[0].id) {
-        triggerAlert(alertIncidents[0]);
-        localStorage.setItem('lastAlerted', alertIncidents[0].id);
+    if (alertApps.length > 0) {
+      if (!preventDuplicateAlerts || localStorage.getItem('lastAlerted') !== alertApps[0].id) {
+        triggerAlert(alertApps[0]);
+        localStorage.setItem('lastAlerted', alertApps[0].id);
       }
     }
-  }, [incidentAnalytics, notificationThreshold, preventDuplicateAlerts]);
+  }, [appStatistics, notificationThreshold, preventDuplicateAlerts]);
   
   // Update when localStorage changes
   useEffect(() => {
@@ -142,12 +129,6 @@ const CockpitView = () => {
       window.removeEventListener('incident-update', handleStorageChange);
     };
   }, []);
-  
-  // Format date for display
-  const formatDate = (date: Date | null) => {
-    if (!date) return "N/A";
-    return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-  };
   
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#1A1F2C]">
@@ -208,13 +189,13 @@ const CockpitView = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Top incidents panel */}
+            {/* Applications panel */}
             <div className="md:col-span-2">
               <Card className="bg-[#252A37] border-[#9b87f5]/20 text-white shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-[#9b87f5]">Top 10 des incidents</CardTitle>
+                  <CardTitle className="text-[#9b87f5]">Applications et Incidents</CardTitle>
                   <CardDescription className="text-gray-400">
-                    Les incidents les plus signalés aujourd'hui
+                    Toutes les applications et le nombre d'incidents déclarés
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -223,33 +204,36 @@ const CockpitView = () => {
                       <Table>
                         <TableHeader>
                           <TableRow className="border-[#9b87f5]/20 hover:bg-[#2A3040]">
-                            <TableHead className="text-[#D6BCFA]">Incident</TableHead>
-                            <TableHead className="text-[#D6BCFA]">Signalements</TableHead>
-                            <TableHead className="text-[#D6BCFA]">Première alerte</TableHead>
-                            <TableHead className="text-[#D6BCFA]">Résolution</TableHead>
+                            <TableHead className="text-[#D6BCFA]">Application</TableHead>
+                            <TableHead className="text-[#D6BCFA]">Incidents déclarés</TableHead>
                             <TableHead className="text-[#D6BCFA]">Statut</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {incidentAnalytics.map(incident => (
+                          {appStatistics.map(app => (
                             <TableRow 
-                              key={incident.id}
+                              key={app.id}
                               className={`border-[#9b87f5]/10 hover:bg-[#2A3040] ${
-                                incident.count > visualAlertThreshold ? 'bg-[#ea384c]/10' : ''
+                                app.incidentCount > visualAlertThreshold ? 'bg-[#ea384c]/10' : ''
                               }`}
                             >
-                              <TableCell className="font-medium">{incident.name}</TableCell>
-                              <TableCell className="font-bold">{incident.count}</TableCell>
-                              <TableCell>{formatDate(incident.firstReported)}</TableCell>
-                              <TableCell>{formatDate(incident.resolvedAt)}</TableCell>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  {app.iconComponent}
+                                  <span>{app.name}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-bold">
+                                {app.incidentCount}
+                              </TableCell>
                               <TableCell>
-                                {incident.resolvedAt ? (
+                                {app.status === 'ok' ? (
                                   <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">
-                                    Résolu
+                                    OK
                                   </span>
                                 ) : (
                                   <span className="inline-flex items-center px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs">
-                                    En cours
+                                    Incident
                                   </span>
                                 )}
                               </TableCell>
@@ -260,32 +244,31 @@ const CockpitView = () => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {incidentAnalytics.map(incident => (
-                        <Card key={incident.id} className={`border ${
-                          incident.count > visualAlertThreshold 
+                      {appStatistics.map(app => (
+                        <Card key={app.id} className={`border ${
+                          app.incidentCount > visualAlertThreshold 
                             ? 'border-[#ea384c] bg-[#ea384c]/10' 
                             : 'border-[#9b87f5]/20 bg-[#2A3040]'
                         }`}>
                           <CardContent className="p-4">
                             <div className="flex justify-between items-center mb-2">
-                              <h3 className="font-bold text-white">{incident.name}</h3>
-                              {incident.resolvedAt ? (
+                              <div className="flex items-center gap-2">
+                                {app.iconComponent}
+                                <h3 className="font-bold text-white">{app.name}</h3>
+                              </div>
+                              {app.status === 'ok' ? (
                                 <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">
-                                  Résolu
+                                  OK
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs">
-                                  En cours
+                                  Incident
                                 </span>
                               )}
                             </div>
-                            <div className="flex justify-between items-center text-sm text-gray-400">
-                              <span>Première: {formatDate(incident.firstReported)}</span>
-                              <span>Résolution: {formatDate(incident.resolvedAt)}</span>
-                            </div>
                             <div className="mt-3 text-center">
                               <span className="text-2xl font-bold text-[#9b87f5]">
-                                {incident.count} signalements
+                                {app.incidentCount} incidents
                               </span>
                             </div>
                           </CardContent>
@@ -322,7 +305,7 @@ const CockpitView = () => {
                         className="my-2"
                       />
                       <p className="text-xs text-gray-400">
-                        Les incidents dépassant ce nombre seront mis en évidence
+                        Les applications dépassant ce nombre seront mises en évidence
                       </p>
                     </div>
                     
