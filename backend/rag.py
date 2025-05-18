@@ -171,21 +171,13 @@ def get_chat_completion(
         return get_api_chat_completion(model_name, messages, max_tokens)
     else:
         try:
-            # Essayer d'abord le mode local
-            logger.info("Tentative d'utilisation du mode local pour l'inférence LLM")
+            # Mode local exclusif
+            logger.info("Utilisation du mode local pour l'inférence LLM")
             return get_local_chat_completion(model_name, messages, max_tokens, api_url)
         except Exception as e:
-            if os.environ.get("MISTRAL_API_KEY"):
-                # Si l'API key est configurée, essayer de basculer vers le mode API en cas d'erreur locale
-                logger.warning(f"Échec du mode local ({str(e)}), basculement vers le mode API")
-                try:
-                    return get_api_chat_completion(model_name, messages, max_tokens)
-                except Exception as api_error:
-                    logger.error(f"Échec également en mode API: {str(api_error)}")
-                    raise Exception(f"Les deux modes de complétion ont échoué. Local: {str(e)}. API: {str(api_error)}")
-            else:
-                # Si pas d'API key, propager simplement l'erreur
-                raise
+            # En mode local, ne pas basculer vers l'API en cas d'erreur
+            logger.error(f"Échec du mode local: {str(e)}")
+            raise Exception(f"Erreur en mode local: {str(e)}")
 
 def get_local_chat_completion(
     model_name: str,
@@ -194,6 +186,7 @@ def get_local_chat_completion(
     api_url: str = MISTRAL_URL
 ) -> dict:
     headers = {"Content-Type": "application/json"}
+    # Toujours utiliser le modèle configuré dans config.py, peu importe ce qui est passé
     payload = {
         "model": MISTRAL_PATH,
         "messages": messages,
