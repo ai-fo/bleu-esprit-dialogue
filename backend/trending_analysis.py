@@ -6,7 +6,7 @@ from collections import Counter
 
 from database import get_questions_from_today, save_trending_questions, get_trending_questions
 from rag import get_chat_completion
-from config import MINISTRAL_URL
+from config import MISTRAL_URL, MISTRAL_PATH
 
 # Configurer le logging
 logging.basicConfig(level=logging.INFO)
@@ -121,13 +121,13 @@ def group_similar_questions(questions: List[str]) -> List[Dict]:
             {"role": "user", "content": prompt}
         ]
         
-        # Obtenir la réponse du LLM, en utilisant ministral_path 
+        # Obtenir la réponse du LLM, en utilisant mistral_path 
         # Correction de l'appel pour correspondre à la signature de la fonction
         response = get_chat_completion(
-            model_name="ministral",  # Remplace "model" par "model_name"
+            model_name=MISTRAL_PATH,  # Utiliser le chemin complet du modèle Mistral
             messages=messages,
             max_tokens=2000,
-            api_url=MINISTRAL_URL  # Utiliser l'API URL de ministral
+            api_url=MISTRAL_URL  # Utiliser l'API URL de mistral
         )
         
         if not response or 'choices' not in response:
