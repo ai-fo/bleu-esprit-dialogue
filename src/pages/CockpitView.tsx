@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Clock, Bell, AlertTriangle, PhoneCall, Users, MessageSquare, Calendar, Activity } from 'lucide-react';
 import { AppIncident, appIncidents as defaultIncidentList } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
+import { getChatbotStats, ChatbotStats, getApplicationStats, ApplicationStat, getHourlyIncidents } from '@/lib/api';
 
 // Type for application statistics
 interface AppStatistics {
@@ -53,69 +54,171 @@ const CockpitView = () => {
   const [notificationThreshold, setNotificationThreshold] = useState(30);
   const [preventDuplicateAlerts, setPreventDuplicateAlerts] = useState(true);
   const [displayView, setDisplayView] = useState<'table' | 'cards'>('table');
+  const [chatbotStatistics, setChatbotStatistics] = useState<ChatbotStats>({
+    daily_messages: 0,
+    weekly_messages: 0,
+    total_messages: 0,
+    current_sessions: 0
+  });
+  const [applicationStatistics, setApplicationStatistics] = useState<ApplicationStat[]>([]);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isLoadingAppStats, setIsLoadingAppStats] = useState(true);
   const { toast } = useToast();
   
-  // Generate application statistics based on incidents
-  const appStatistics = useMemo<AppStatistics[]>(() => {
-    const stats: AppStatistics[] = [];
-    
-    // Get the full list of applications from default incident list
-    const defaultApps = defaultIncidentList;
-    
-    // Create statistics for each application
-    defaultApps.forEach(app => {
-      // Count how many times this application appears with 'incident' status
-      const currentStatus = incidents.find(inc => inc.id === app.id)?.status || 'ok';
-      const randomCount = currentStatus === 'incident' ? Math.floor(Math.random() * 45) + 5 : 0;
-      // Génération d'un nombre aléatoire d'appelants par application
-      const randomCallerCount = currentStatus === 'incident' ? Math.floor(randomCount * 1.5) : 0;
+  // Generate hourly data for the chart
+  const [hourlyData, setHourlyData] = useState<HourlyData[]>([]);
+  const [isLoadingHourlyData, setIsLoadingHourlyData] = useState(true);
+  
+  const fetchHourlyIncidents = async () => {
+    try {
+      setIsLoadingHourlyData(true);
+      const data = await getHourlyIncidents();
+      setHourlyData(data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des incidents horaires:", error);
+      // En cas d'erreur, créer un tableau vide avec des zéros
+      const emptyData: HourlyData[] = [];
+      const now = new Date();
       
-      stats.push({
-        id: app.id,
-        name: app.name,
-        iconComponent: app.icon,
-        incidentCount: randomCount,
-        callerCount: randomCallerCount,
-        status: currentStatus
-      });
-    });
+      for (let i = 23; i >= 0; i--) {
+        const hour = new Date();
+        hour.setHours(now.getHours() - i);
+        
+        emptyData.push({
+          hour: hour.getHours().toString().padStart(2, '0') + ':00',
+          incidents: 0
+        });
+      }
+      
+      setHourlyData(emptyData);
+    } finally {
+      setIsLoadingHourlyData(false);
+    }
+  };
+  
+  // Charger les statistiques du chatbot depuis l'API
+  useEffect(() => {
+    const fetchChatbotStats = async () => {
+      try {
+        setIsLoadingStats(true);
+        const stats = await getChatbotStats();
+        setChatbotStatistics(stats);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des statistiques du chatbot:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer les statistiques du chatbot"
+        });
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
     
-    // Sort by incident count (descending)
-    return stats.sort((a, b) => b.incidentCount - a.incidentCount);
-  }, [incidents]);
+    fetchChatbotStats();
+    
+    // Actualiser les statistiques toutes les 5 minutes
+    const interval = setInterval(fetchChatbotStats, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [toast]);
+  
+  // Charger les statistiques des applications depuis l'API
+  useEffect(() => {
+    const fetchApplicationStats = async () => {
+      try {
+        setIsLoadingAppStats(true);
+        const stats = await getApplicationStats();
+        setApplicationStatistics(stats);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des statistiques des applications:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer les statistiques des applications"
+        });
+      } finally {
+        setIsLoadingAppStats(false);
+      }
+    };
+    
+    fetchApplicationStats();
+    
+    // Actualiser les statistiques toutes les 5 minutes
+    const interval = setInterval(fetchApplicationStats, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [toast]);
+  
+  // Charger les données horaires au chargement du composant
+  useEffect(() => {
+    fetchHourlyIncidents();
+  }, []);
+  
+  // Generate application statistics based on incidents and API data
+  const appStatistics = useMemo<AppStatistics[]>(() => {
+    // Si les statistiques des applications sont en cours de chargement ou vides, utiliser les incidents
+    if (isLoadingAppStats || applicationStatistics.length === 0) {
+      const stats: AppStatistics[] = [];
+      
+      // Get the full list of applications from default incident list
+      const defaultApps = defaultIncidentList;
+      
+      // Create statistics for each application
+      defaultApps.forEach(app => {
+        // Count how many times this application appears with 'incident' status
+        const currentStatus = incidents.find(inc => inc.id === app.id)?.status || 'ok';
+        // Utiliser 0 pour les applications sans incidents, sinon un nombre aléatoire pour les incidents
+        const randomCount = currentStatus === 'incident' ? Math.floor(Math.random() * 45) + 5 : 0;
+        // Génération d'un nombre aléatoire d'appelants par application
+        const randomCallerCount = currentStatus === 'incident' ? Math.floor(randomCount * 1.5) : 0;
+        
+        stats.push({
+          id: app.id,
+          name: app.name,
+          iconComponent: app.icon,
+          incidentCount: randomCount,
+          callerCount: randomCallerCount,
+          status: currentStatus
+        });
+      });
+      
+      // Sort by incident count (descending)
+      return stats.sort((a, b) => b.incidentCount - a.incidentCount);
+    } else {
+      // Utiliser les données de l'API
+      return applicationStatistics.map(app => {
+        // Trouver l'icône correspondante dans defaultIncidentList
+        const defaultApp = defaultIncidentList.find(defaultApp => 
+          defaultApp.name.toLowerCase() === app.name.toLowerCase() || 
+          defaultApp.id === app.id
+        );
+        
+        return {
+          id: app.id,
+          name: app.name,
+          // Utiliser l'icône par défaut ou une icône générique
+          iconComponent: defaultApp?.icon || <AlertTriangle className="h-4 w-4 text-yellow-500" />,
+          incidentCount: app.incident_count,
+          callerCount: app.user_count,
+          status: app.status as 'ok' | 'incident'
+        };
+      });
+    }
+  }, [incidents, applicationStatistics, isLoadingAppStats]);
   
   // Calculate total callers across all applications
   const totalCallers = useMemo(() => {
-    return 8; // Fixed value for current callers as requested
-  }, []);
+    return chatbotStatistics.current_sessions || 0;
+  }, [chatbotStatistics]);
   
-  // Generate caller statistics with specific requested values
+  // Generate caller statistics with values from the API
   const callerStats = useMemo<CallerStatistics>(() => {
     return {
-      currentCallers: 8,       // Fixed value as requested
-      dailyCallers: 123,       // Fixed value as requested
-      chatbotMessages: Math.floor(Math.random() * 200) + 100, // Keep random chatbot messages
-      weeklyCallers: 180       // Fixed value as requested
+      currentCallers: chatbotStatistics.current_sessions,
+      dailyCallers: chatbotStatistics.daily_messages,
+      chatbotMessages: chatbotStatistics.total_messages,
+      weeklyCallers: chatbotStatistics.weekly_messages
     };
-  }, []);
-  
-  // Generate hourly data for the chart
-  const hourlyData = useMemo(() => {
-    const data: HourlyData[] = [];
-    const now = new Date();
-    
-    for (let i = 23; i >= 0; i--) {
-      const hour = new Date();
-      hour.setHours(now.getHours() - i);
-      
-      data.push({
-        hour: hour.getHours().toString().padStart(2, '0') + ':00',
-        incidents: Math.floor(Math.random() * 30) + (i < 5 ? 10 : 0) // More incidents in recent hours
-      });
-    }
-    
-    return data;
-  }, []);
+  }, [chatbotStatistics]);
   
   // Function to trigger alerts
   const triggerAlert = (app: AppStatistics) => {
@@ -155,6 +258,39 @@ const CockpitView = () => {
       window.removeEventListener('incident-update', handleStorageChange);
     };
   }, []);
+  
+  // Actualiser les données horaires lors du rafraîchissement des statistiques
+  const handleRefreshStats = async () => {
+    try {
+      setIsLoadingStats(true);
+      setIsLoadingAppStats(true);
+      
+      // Récupérer les statistiques du chatbot
+      const chatbotStats = await getChatbotStats();
+      setChatbotStatistics(chatbotStats);
+      
+      // Récupérer les statistiques des applications
+      const appStats = await getApplicationStats();
+      setApplicationStatistics(appStats);
+      
+      // Récupérer les incidents horaires
+      await fetchHourlyIncidents();
+      
+      toast({
+        title: "Statistiques actualisées",
+        description: "Les statistiques ont été actualisées avec succès"
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'actualisation des statistiques:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'actualiser les statistiques"
+      });
+    } finally {
+      setIsLoadingStats(false);
+      setIsLoadingAppStats(false);
+    }
+  };
   
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#1A1F2C]">
@@ -224,8 +360,8 @@ const CockpitView = () => {
                     <Users className="h-8 w-8 text-[#9b87f5]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-400">Appelants en cours</h3>
-                    <p className="text-2xl font-bold text-white">{callerStats.currentCallers}</p>
+                    <h3 className="text-sm font-medium text-gray-400">Sessions actives</h3>
+                    <p className="text-2xl font-bold text-white">{isLoadingStats ? '...' : callerStats.currentCallers}</p>
                   </div>
                 </div>
                 
@@ -235,8 +371,8 @@ const CockpitView = () => {
                     <Calendar className="h-8 w-8 text-[#9b87f5]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-400">Appelants aujourd'hui</h3>
-                    <p className="text-2xl font-bold text-white">{callerStats.dailyCallers}</p>
+                    <h3 className="text-sm font-medium text-gray-400">Messages aujourd'hui</h3>
+                    <p className="text-2xl font-bold text-white">{isLoadingStats ? '...' : callerStats.dailyCallers}</p>
                   </div>
                 </div>
                 
@@ -246,8 +382,8 @@ const CockpitView = () => {
                     <MessageSquare className="h-8 w-8 text-[#9b87f5]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-400">Messages chatbot</h3>
-                    <p className="text-2xl font-bold text-white">{callerStats.chatbotMessages}</p>
+                    <h3 className="text-sm font-medium text-gray-400">Total messages</h3>
+                    <p className="text-2xl font-bold text-white">{isLoadingStats ? '...' : callerStats.chatbotMessages}</p>
                   </div>
                 </div>
                 
@@ -257,18 +393,25 @@ const CockpitView = () => {
                     <Activity className="h-8 w-8 text-[#9b87f5]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-400">Appelants hebdo</h3>
-                    <p className="text-2xl font-bold text-white">{callerStats.weeklyCallers}</p>
+                    <h3 className="text-sm font-medium text-gray-400">Messages hebdo</h3>
+                    <p className="text-2xl font-bold text-white">{isLoadingStats ? '...' : callerStats.weeklyCallers}</p>
                   </div>
                 </div>
               </div>
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-end gap-2">
+                <Button 
+                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+                  onClick={handleRefreshStats}
+                  disabled={isLoadingStats}
+                >
+                  {isLoadingStats ? 'Actualisation...' : 'Actualiser'}
+                </Button>
                 <Button 
                   className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
                   onClick={() => {
                     toast({
                       title: "Export en cours",
-                      description: "Les données des appelants sont en cours d'export"
+                      description: "Les données des messages sont en cours d'export"
                     });
                   }}
                 >

@@ -25,7 +25,11 @@ from database import (
     save_message,
     save_feedback,
     save_error,
-    get_trending_questions
+    get_trending_questions,
+    get_chatbot_stats,
+    get_application_stats,
+    get_hourly_incidents,
+    create_tables
 )
 
 # Import fonctions du module trending_analysis
@@ -76,6 +80,24 @@ class TrendingQuestion(BaseModel):
     count: int
     source: str = 'all'
     application: Optional[str] = None
+
+class ChatbotStats(BaseModel):
+    daily_messages: int
+    weekly_messages: int
+    total_messages: int
+    current_sessions: int
+
+class ApplicationStat(BaseModel):
+    id: str
+    name: str
+    incident_count: int
+    user_count: int
+    status: str
+    last_updated: Optional[datetime] = None
+
+class HourlyIncident(BaseModel):
+    hour: str
+    incidents: int
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -414,34 +436,127 @@ def feedback_endpoint(req: FeedbackRequest):
 
 @app.get("/trending_questions", response_model=List[TrendingQuestion])
 def get_trending_questions_endpoint(limit: int = 3, force_update: bool = False, source: str = 'all'):
-    """Récupérer les questions tendances d'aujourd'hui.
+    """Récupérer les questions tendances"""
+    if force_update:
+        # Forcer la mise à jour des tendances
+        try:
+            analyze_and_update_trending_questions(source=source)
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour des tendances: {e}")
     
-    Args:
-        limit: Nombre maximum de questions à récupérer
-        force_update: Forcer la mise à jour des tendances
-        source: Source des questions ('user', 'admin' ou 'all')
-    """
+    # Récupérer les tendances actuelles
+    return get_trending_questions(limit=limit, source=source)
+
+@app.get("/chatbot_stats", response_model=ChatbotStats)
+def get_chatbot_stats_endpoint():
+    """Récupérer les statistiques du chatbot"""
     try:
-        # Mettre à jour les tendances si demandé
-        if force_update:
-            logger.info(f"Mise à jour forcée des questions tendances pour la source: {source}")
-            trending_questions = analyze_and_update_trending_questions(limit)
-        else:
-            # Récupérer les questions tendances existantes pour la source spécifiée
-            trending_questions = get_trending_questions(limit, source)
-            
-            # Si aucune question tendance n'existe, en générer
-            if not trending_questions:
-                logger.info(f"Aucune question tendance trouvée pour la source {source}, analyse en cours...")
-                trending_questions = analyze_and_update_trending_questions(limit)
-        
-        logger.info(f"Questions tendances récupérées: {trending_questions}")
-        return trending_questions
+        return get_chatbot_stats()
     except Exception as e:
-        error_message = f"Erreur lors de la récupération des questions tendances: {str(e)}"
-        logger.error(error_message)
-        save_error("trending_error", error_message, stack_trace=traceback.format_exc())
-        return []
+        logger.error(f"Erreur lors de la récupération des statistiques du chatbot: {e}")
+        return {
+            "daily_messages": 0,
+            "weekly_messages": 0,
+            "total_messages": 0,
+            "current_sessions": 0
+        }
+
+@app.get("/application_stats", response_model=List[ApplicationStat])
+def get_application_stats_endpoint():
+    """Récupérer les statistiques des applications"""
+    try:
+        return get_application_stats()
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des statistiques des applications: {e}")
+        # Retourner quelques applications par défaut en cas d'erreur
+        return [
+            {"id": "artis", "name": "Artis", "incident_count": 1, "user_count": 1, "status": "incident"},
+            {"id": "outlook", "name": "Outlook", "incident_count": 0, "user_count": 0, "status": "ok"},
+            {"id": "sap", "name": "SAP", "incident_count": 0, "user_count": 0, "status": "ok"}
+        ]
+
+@app.get("/hourly_incidents", response_model=List[HourlyIncident])
+def get_hourly_incidents_endpoint():
+    """Récupérer la volumétrie des incidents par heure"""
+    try:
+        return get_hourly_incidents()
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de la volumétrie des incidents: {e}")
+        # Retourner un tableau vide en cas d'erreur au lieu de données aléatoires
+        now = datetime.now()
+        result = []
+        for i in range(24):
+            hour = (now.hour - 23 + i) % 24
+            result.append({"hour": f"{hour:02d}:00", "incidents": 0})
+        return result
+
+@app.get("/init_db")
+def init_db_endpoint():
+    """Initialiser la base de données et vérifier sa connexion"""
+    try:
+        # Créer les tables si elles n'existent pas
+        success = create_tables()
+        
+        if success:
+            # Ajouter un message de test si la base est vide
+            from database import get_db_connection
+            
+            conn = get_db_connection()
+            if not conn:
+                return {"success": False, "message": "Échec de connexion à la base de données"}
+                
+            try:
+                with conn.cursor() as cur:
+                    # Vérifier s'il y a des messages
+                    cur.execute("SELECT COUNT(*) as count FROM messages")
+                    count = cur.fetchone()['count']
+                    
+                    # Si pas de messages, créer une session et un message de test
+                    if count == 0:
+                        # Créer une session de test
+                        test_session_id = "test_session_init"
+                        cur.execute(
+                            "INSERT INTO sessions (session_id, source) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                            (test_session_id, 'user')
+                        )
+                        
+                        # Créer un message de test utilisateur
+                        cur.execute(
+                            "INSERT INTO messages (session_id, role, content, source) VALUES (%s, %s, %s, %s)",
+                            (test_session_id, 'user', 'Message de test utilisateur', 'user')
+                        )
+                        
+                        # Créer un message de test assistant
+                        cur.execute(
+                            "INSERT INTO messages (session_id, role, content, source) VALUES (%s, %s, %s, %s)",
+                            (test_session_id, 'assistant', 'Message de test assistant', 'user')
+                        )
+                        
+                        conn.commit()
+                        logger.info("Messages de test créés avec succès")
+                        
+                        return {
+                            "success": True, 
+                            "message": "Base de données initialisée avec des données de test",
+                            "created_test_data": True
+                        }
+                    else:
+                        return {
+                            "success": True, 
+                            "message": f"Base de données déjà initialisée avec {count} messages",
+                            "created_test_data": False
+                        }
+            except Exception as e:
+                conn.rollback()
+                logger.error(f"Erreur lors de la création des données de test: {e}")
+                return {"success": False, "message": f"Erreur: {str(e)}"}
+            finally:
+                conn.close()
+        else:
+            return {"success": False, "message": "Échec de création des tables"}
+    except Exception as e:
+        logger.error(f"Erreur lors de l'initialisation de la base de données: {e}")
+        return {"success": False, "message": f"Erreur: {str(e)}"}
 
 if __name__ == "__main__":
     import uvicorn

@@ -31,6 +31,27 @@ export interface TrendingQuestion {
   application?: string;  // Nom de l'application concernée ou undefined si aucune
 }
 
+export interface ChatbotStats {
+  daily_messages: number;
+  weekly_messages: number;
+  total_messages: number;
+  current_sessions: number;
+}
+
+export interface ApplicationStat {
+  id: string;
+  name: string;
+  incident_count: number;
+  user_count: number;
+  status: string;
+  last_updated?: string;
+}
+
+export interface HourlyIncident {
+  hour: string;
+  incidents: number;
+}
+
 /**
  * Envoie un message au serveur et obtient une réponse
  * @param message Le message de l'utilisateur à envoyer
@@ -203,5 +224,144 @@ export const clearConversation = async (): Promise<void> => {
   } catch (error) {
     console.error('Erreur lors de la réinitialisation de la conversation:', error);
     throw error;
+  }
+};
+
+/**
+ * Récupère les statistiques du chatbot
+ */
+export const getChatbotStats = async (): Promise<ChatbotStats> => {
+  try {
+    console.log('Récupération des statistiques du chatbot:', {
+      url: `${API_URL}/chatbot_stats`,
+    });
+
+    const response = await fetch(`${API_URL}/chatbot_stats`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const responseText = await response.text();
+    console.log('Réponse du serveur pour les statistiques:', responseText);
+
+    if (!response.ok) {
+      console.error('Erreur lors de la récupération des statistiques:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText,
+      });
+      throw new Error(`Erreur serveur: ${response.status} - ${responseText}`);
+    }
+
+    // Essayer de parser la réponse JSON
+    try {
+      const data = JSON.parse(responseText);
+      console.log('Statistiques parsées:', data);
+      return data;
+    } catch (e) {
+      console.error('Erreur de parsing JSON:', e);
+      return {
+        daily_messages: 0,
+        weekly_messages: 0,
+        total_messages: 0,
+        current_sessions: 0
+      };
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération des statistiques:', error);
+    return {
+      daily_messages: 0,
+      weekly_messages: 0,
+      total_messages: 0,
+      current_sessions: 0
+    };
+  }
+};
+
+/**
+ * Récupère les statistiques des applications
+ */
+export const getApplicationStats = async (): Promise<ApplicationStat[]> => {
+  try {
+    console.log('Récupération des statistiques des applications:', {
+      url: `${API_URL}/application_stats`,
+    });
+
+    const response = await fetch(`${API_URL}/application_stats`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const responseText = await response.text();
+    console.log('Réponse du serveur pour les statistiques des applications:', responseText);
+
+    if (!response.ok) {
+      console.error('Erreur lors de la récupération des statistiques des applications:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText,
+      });
+      throw new Error(`Erreur serveur: ${response.status} - ${responseText}`);
+    }
+
+    // Essayer de parser la réponse JSON
+    try {
+      const data = JSON.parse(responseText);
+      console.log('Statistiques des applications parsées:', data);
+      return data;
+    } catch (e) {
+      console.error('Erreur de parsing JSON:', e);
+      return [];
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération des statistiques des applications:', error);
+    return [];
+  }
+};
+
+/**
+ * Récupère la volumétrie des incidents par heure
+ */
+export const getHourlyIncidents = async (): Promise<HourlyIncident[]> => {
+  try {
+    console.log('Récupération de la volumétrie des incidents:', {
+      url: `${API_URL}/hourly_incidents`,
+    });
+
+    const response = await fetch(`${API_URL}/hourly_incidents`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const responseText = await response.text();
+    console.log('Réponse du serveur pour la volumétrie des incidents:', responseText);
+
+    if (!response.ok) {
+      console.error('Erreur lors de la récupération de la volumétrie des incidents:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText,
+      });
+      throw new Error(`Erreur serveur: ${response.status} - ${responseText}`);
+    }
+
+    // Essayer de parser la réponse JSON
+    try {
+      const data = JSON.parse(responseText);
+      console.log('Données de volumétrie parsées:', data);
+      return data;
+    } catch (e) {
+      console.error('Erreur de parsing JSON:', e);
+      return [];
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la volumétrie des incidents:', error);
+    return [];
   }
 };
