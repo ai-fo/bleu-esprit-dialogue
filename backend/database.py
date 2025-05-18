@@ -7,6 +7,7 @@ from psycopg2.extras import RealDictCursor
 import logging
 from dotenv import load_dotenv
 import random
+import urllib.parse
 
 # Configurer le logging
 logging.basicConfig(level=logging.INFO)
@@ -16,6 +17,11 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Configuration de la base de données
+# Priorité à l'URI complète de connexion
+FOYER_API_POSTGRES_URI = os.getenv("FOYER_API_POSTGRES_URI", "postgresql://postgres:password@localhost:5432/prediction")
+logger.info(f"URI de connexion PostgreSQL: {FOYER_API_POSTGRES_URI}")
+
+# Configuration individuelle en fallback
 DB_NAME = os.getenv("DB_NAME", "chatbot")
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
@@ -25,14 +31,21 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 def get_db_connection():
     """Établir une connexion à la base de données PostgreSQL."""
     try:
-        conn = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT,
-            cursor_factory=RealDictCursor
-        )
+        # Utiliser l'URI complète si disponible
+        if FOYER_API_POSTGRES_URI:
+            logger.info(f"Connexion à la base de données via URI")
+            conn = psycopg2.connect(FOYER_API_POSTGRES_URI, cursor_factory=RealDictCursor)
+        else:
+            # Fallback vers la connexion avec paramètres individuels
+            logger.info(f"Connexion à la base de données via paramètres individuels")
+            conn = psycopg2.connect(
+                dbname=DB_NAME,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                host=DB_HOST,
+                port=DB_PORT,
+                cursor_factory=RealDictCursor
+            )
         logger.info("Connexion à la base de données réussie")
         return conn
     except Exception as e:
