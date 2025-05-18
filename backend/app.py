@@ -508,7 +508,7 @@ def init_db_endpoint():
             try:
                 with conn.cursor() as cur:
                     # Vérifier s'il y a des messages
-                    cur.execute("SELECT COUNT(*) as count FROM messages")
+                    cur.execute("SELECT COUNT(*) as count FROM messages_mistral_chatbot")
                     count = cur.fetchone()['count']
                     
                     # Si pas de messages, créer une session et un message de test
@@ -516,19 +516,19 @@ def init_db_endpoint():
                         # Créer une session de test
                         test_session_id = "test_session_init"
                         cur.execute(
-                            "INSERT INTO sessions (session_id, source) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                            "INSERT INTO sessions_mistral_chatbot (session_id, source) VALUES (%s, %s) ON CONFLICT DO NOTHING",
                             (test_session_id, 'user')
                         )
                         
                         # Créer un message de test utilisateur
                         cur.execute(
-                            "INSERT INTO messages (session_id, role, content, source) VALUES (%s, %s, %s, %s)",
+                            "INSERT INTO messages_mistral_chatbot (session_id, role, content, source) VALUES (%s, %s, %s, %s)",
                             (test_session_id, 'user', 'Message de test utilisateur', 'user')
                         )
                         
                         # Créer un message de test assistant
                         cur.execute(
-                            "INSERT INTO messages (session_id, role, content, source) VALUES (%s, %s, %s, %s)",
+                            "INSERT INTO messages_mistral_chatbot (session_id, role, content, source) VALUES (%s, %s, %s, %s)",
                             (test_session_id, 'assistant', 'Message de test assistant', 'user')
                         )
                         

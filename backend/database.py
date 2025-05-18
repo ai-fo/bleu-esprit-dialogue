@@ -50,7 +50,7 @@ def create_tables():
         with conn.cursor() as cur:
             # Table des sessions
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS sessions (
+            CREATE TABLE IF NOT EXISTS sessions_mistral_chatbot (
                 id SERIAL PRIMARY KEY,
                 session_id VARCHAR(255) NOT NULL UNIQUE,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -61,70 +61,70 @@ def create_tables():
 
             # Table des messages
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS messages (
+            CREATE TABLE IF NOT EXISTS messages_mistral_chatbot (
                 id SERIAL PRIMARY KEY,
                 session_id VARCHAR(255) NOT NULL,
                 role VARCHAR(50) NOT NULL,
                 content TEXT NOT NULL,
                 source VARCHAR(50) DEFAULT 'user',  -- 'user' ou 'admin' pour indiquer l'origine
                 timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+                FOREIGN KEY (session_id) REFERENCES sessions_mistral_chatbot(session_id) ON DELETE CASCADE
             );
             """)
 
             # Table des parties de message (pour les réponses divisées)
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS message_parts (
+            CREATE TABLE IF NOT EXISTS message_parts_mistral_chatbot (
                 id SERIAL PRIMARY KEY,
                 session_id VARCHAR(255) NOT NULL,
                 message_id INTEGER NOT NULL,
                 part_number INTEGER NOT NULL,
                 content TEXT NOT NULL,
                 timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
-                FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
+                FOREIGN KEY (session_id) REFERENCES sessions_mistral_chatbot(session_id) ON DELETE CASCADE,
+                FOREIGN KEY (message_id) REFERENCES messages_mistral_chatbot(id) ON DELETE CASCADE
             );
             """)
 
             # Table des fichiers sources utilisés pour les réponses
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS source_files (
+            CREATE TABLE IF NOT EXISTS source_files_mistral_chatbot (
                 id SERIAL PRIMARY KEY,
                 message_id INTEGER NOT NULL,
                 filename VARCHAR(255) NOT NULL,
                 timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
+                FOREIGN KEY (message_id) REFERENCES messages_mistral_chatbot(id) ON DELETE CASCADE
             );
             """)
 
             # Table des feedbacks
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS feedbacks (
+            CREATE TABLE IF NOT EXISTS feedbacks_mistral_chatbot (
                 id SERIAL PRIMARY KEY,
                 message_id INTEGER NOT NULL,
                 rating INTEGER NOT NULL,
                 comment TEXT,
                 timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
+                FOREIGN KEY (message_id) REFERENCES messages_mistral_chatbot(id) ON DELETE CASCADE
             );
             """)
 
             # Table des erreurs
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS errors (
+            CREATE TABLE IF NOT EXISTS errors_mistral_chatbot (
                 id SERIAL PRIMARY KEY,
                 session_id VARCHAR(255),
                 error_type VARCHAR(100) NOT NULL,
                 error_message TEXT NOT NULL,
                 stack_trace TEXT,
                 timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+                FOREIGN KEY (session_id) REFERENCES sessions_mistral_chatbot(session_id) ON DELETE CASCADE
             );
             """)
 
             # Table des questions tendances
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS trending_questions (
+            CREATE TABLE IF NOT EXISTS trending_questions_mistral_chatbot (
                 id SERIAL PRIMARY KEY,
                 question TEXT NOT NULL,
                 count INTEGER NOT NULL DEFAULT 1,
@@ -161,19 +161,19 @@ def save_session(session_id: str, source: str = 'user') -> bool:
     try:
         with conn.cursor() as cur:
             # Vérifier si la session existe déjà
-            cur.execute("SELECT id FROM sessions WHERE session_id = %s", (session_id,))
+            cur.execute("SELECT id FROM sessions_mistral_chatbot WHERE session_id = %s", (session_id,))
             result = cur.fetchone()
             
             if result:
                 # Mettre à jour la date de dernière activité
                 cur.execute(
-                    "UPDATE sessions SET last_activity = CURRENT_TIMESTAMP WHERE session_id = %s",
+                    "UPDATE sessions_mistral_chatbot SET last_activity = CURRENT_TIMESTAMP WHERE session_id = %s",
                     (session_id,)
                 )
             else:
                 # Créer une nouvelle session avec la source spécifiée
                 cur.execute(
-                    "INSERT INTO sessions (session_id, source) VALUES (%s, %s)",
+                    "INSERT INTO sessions_mistral_chatbot (session_id, source) VALUES (%s, %s)",
                     (session_id, source)
                 )
             
@@ -211,7 +211,7 @@ def save_message(session_id: str, role: str, content: str, message_parts: List[s
         with conn.cursor() as cur:
             # Enregistrer le message principal avec la source
             cur.execute(
-                "INSERT INTO messages (session_id, role, content, source) VALUES (%s, %s, %s, %s) RETURNING id",
+                "INSERT INTO messages_mistral_chatbot (session_id, role, content, source) VALUES (%s, %s, %s, %s) RETURNING id",
                 (session_id, role, content, source)
             )
             message_id = cur.fetchone()['id']
@@ -220,7 +220,7 @@ def save_message(session_id: str, role: str, content: str, message_parts: List[s
             if message_parts and role == "assistant":
                 for i, part in enumerate(message_parts):
                     cur.execute(
-                        "INSERT INTO message_parts (session_id, message_id, part_number, content) VALUES (%s, %s, %s, %s)",
+                        "INSERT INTO message_parts_mistral_chatbot (session_id, message_id, part_number, content) VALUES (%s, %s, %s, %s)",
                         (session_id, message_id, i+1, part)
                     )
             
@@ -230,7 +230,7 @@ def save_message(session_id: str, role: str, content: str, message_parts: List[s
                     # Extraire le nom du fichier du chemin complet
                     filename = file.split('/')[-1]
                     cur.execute(
-                        "INSERT INTO source_files (message_id, filename) VALUES (%s, %s)",
+                        "INSERT INTO source_files_mistral_chatbot (message_id, filename) VALUES (%s, %s)",
                         (message_id, filename)
                     )
             
@@ -252,7 +252,7 @@ def save_feedback(message_id: int, rating: int, comment: str = None) -> bool:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO feedbacks (message_id, rating, comment) VALUES (%s, %s, %s)",
+                "INSERT INTO feedbacks_mistral_chatbot (message_id, rating, comment) VALUES (%s, %s, %s)",
                 (message_id, rating, comment)
             )
             conn.commit()
@@ -273,7 +273,7 @@ def save_error(error_type: str, error_message: str, session_id: str = None, stac
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO errors (session_id, error_type, error_message, stack_trace) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO errors_mistral_chatbot (session_id, error_type, error_message, stack_trace) VALUES (%s, %s, %s, %s)",
                 (session_id, error_type, error_message, stack_trace)
             )
             conn.commit()
@@ -305,7 +305,7 @@ def get_recent_questions(limit: int = 50) -> List[Dict]:
             cur.execute(
                 """
                 SELECT id, session_id, content, timestamp 
-                FROM messages 
+                FROM messages_mistral_chatbot 
                 WHERE role = 'user' 
                 ORDER BY timestamp DESC 
                 LIMIT %s
@@ -343,7 +343,7 @@ def get_questions_from_today(source: str = 'all') -> List[Dict]:
                 cur.execute(
                     """
                     SELECT id, session_id, content, source, timestamp 
-                    FROM messages 
+                    FROM messages_mistral_chatbot 
                     WHERE role = 'user' 
                       AND DATE(timestamp) = %s
                     ORDER BY timestamp DESC
@@ -354,7 +354,7 @@ def get_questions_from_today(source: str = 'all') -> List[Dict]:
                 cur.execute(
                     """
                     SELECT id, session_id, content, source, timestamp 
-                    FROM messages 
+                    FROM messages_mistral_chatbot 
                     WHERE role = 'user' 
                       AND DATE(timestamp) = %s
                       AND source = %s
@@ -388,13 +388,13 @@ def save_trending_questions(questions: List[Dict], source: str = 'all') -> bool:
     try:
         with conn.cursor() as cur:
             # Effacer les anciennes tendances de la même source
-            cur.execute("DELETE FROM trending_questions WHERE source = %s", (source,))
+            cur.execute("DELETE FROM trending_questions_mistral_chatbot WHERE source = %s", (source,))
             
             # Insérer les nouvelles tendances avec la source et l'application
             for q in questions:
                 application = q.get('application', None)
                 cur.execute(
-                    "INSERT INTO trending_questions (question, count, source, application) VALUES (%s, %s, %s, %s)",
+                    "INSERT INTO trending_questions_mistral_chatbot (question, count, source, application) VALUES (%s, %s, %s, %s)",
                     (q['question'], q['count'], source, application)
                 )
             
@@ -429,7 +429,7 @@ def get_trending_questions(limit: int = 5, source: str = 'all') -> List[Dict]:
                 cur.execute(
                     """
                     SELECT question, count, source, application, last_updated
-                    FROM trending_questions
+                    FROM trending_questions_mistral_chatbot
                     ORDER BY count DESC, last_updated DESC
                     LIMIT %s
                     """,
@@ -439,7 +439,7 @@ def get_trending_questions(limit: int = 5, source: str = 'all') -> List[Dict]:
                 cur.execute(
                     """
                     SELECT question, count, source, application, last_updated
-                    FROM trending_questions
+                    FROM trending_questions_mistral_chatbot
                     WHERE source = %s
                     ORDER BY count DESC, last_updated DESC
                     LIMIT %s
@@ -482,16 +482,16 @@ def get_chatbot_stats() -> Dict:
                 logger.warning(f"Impossible de récupérer le fuseau horaire: {e}")
             
             # Vérifier que les tables existent et contiennent des données
-            cur.execute("SELECT COUNT(*) as count FROM messages")
+            cur.execute("SELECT COUNT(*) as count FROM messages_mistral_chatbot")
             total_check = cur.fetchone()
-            logger.info(f"Nombre total d'entrées dans la table messages: {total_check['count'] if total_check else 0}")
+            logger.info(f"Nombre total d'entrées dans la table messages_mistral_chatbot: {total_check['count'] if total_check else 0}")
             
             # Utiliser NOW() et DATE() pour être plus robuste aux problèmes de fuseau horaire
             # Compter les messages d'aujourd'hui (rôle assistant)
             cur.execute(
                 """
                 SELECT COUNT(*) as count 
-                FROM messages 
+                FROM messages_mistral_chatbot 
                 WHERE role = 'assistant' 
                 AND DATE(timestamp) = DATE(NOW())
                 """
@@ -505,7 +505,7 @@ def get_chatbot_stats() -> Dict:
                 cur.execute(
                     """
                     SELECT COUNT(*) as count 
-                    FROM messages 
+                    FROM messages_mistral_chatbot 
                     WHERE DATE(timestamp) = DATE(NOW())
                     """
                 )
@@ -516,7 +516,7 @@ def get_chatbot_stats() -> Dict:
             cur.execute(
                 """
                 SELECT COUNT(*) as count 
-                FROM messages 
+                FROM messages_mistral_chatbot 
                 WHERE role = 'assistant' 
                 AND timestamp >= (NOW() - INTERVAL '7 days')
                 """
@@ -529,7 +529,7 @@ def get_chatbot_stats() -> Dict:
             cur.execute(
                 """
                 SELECT COUNT(*) as count 
-                FROM messages 
+                FROM messages_mistral_chatbot 
                 WHERE role = 'assistant'
                 """
             )
@@ -541,7 +541,7 @@ def get_chatbot_stats() -> Dict:
             cur.execute(
                 """
                 SELECT COUNT(*) as count 
-                FROM sessions 
+                FROM sessions_mistral_chatbot 
                 WHERE DATE(last_activity) = DATE(NOW())
                 """
             )
@@ -564,7 +564,7 @@ def get_chatbot_stats() -> Dict:
                 
             # Vérifier le format de la date dans les messages récents
             if total_check['count'] > 0:
-                cur.execute("SELECT id, role, timestamp FROM messages ORDER BY timestamp DESC LIMIT 3")
+                cur.execute("SELECT id, role, timestamp FROM messages_mistral_chatbot ORDER BY timestamp DESC LIMIT 3")
                 recent_msgs = cur.fetchall()
                 for msg in recent_msgs:
                     logger.info(f"Message récent: ID={msg['id']}, Rôle={msg['role']}, Timestamp={msg['timestamp']}")
@@ -609,7 +609,7 @@ def get_application_stats() -> List[Dict]:
             cur.execute(
                 """
                 SELECT application, COUNT(*) as count, MAX(last_updated) as last_updated
-                FROM trending_questions
+                FROM trending_questions_mistral_chatbot
                 WHERE application IS NOT NULL
                 GROUP BY application
                 ORDER BY count DESC
@@ -642,7 +642,7 @@ def get_application_stats() -> List[Dict]:
                     cur.execute(
                         """
                         SELECT COUNT(*) as count
-                        FROM messages
+                        FROM messages_mistral_chatbot
                         WHERE role = 'user' AND content ILIKE %s
                         """,
                         (f'%{app_name}%',)
@@ -667,7 +667,7 @@ def get_application_stats() -> List[Dict]:
                 cur.execute(
                     """
                     SELECT COUNT(DISTINCT session_id) as user_count
-                    FROM messages
+                    FROM messages_mistral_chatbot
                     WHERE content ILIKE %s AND role = 'user'
                     """,
                     (f'%{app_name}%',)
@@ -728,7 +728,7 @@ def get_hourly_incidents() -> List[Dict]:
                 SELECT 
                     EXTRACT(HOUR FROM timestamp) as hour,
                     COUNT(*) as count
-                FROM messages
+                FROM messages_mistral_chatbot
                 WHERE 
                     role = 'user' AND
                     timestamp >= NOW() - INTERVAL '24 hours'
@@ -746,7 +746,7 @@ def get_hourly_incidents() -> List[Dict]:
                     SELECT 
                         EXTRACT(HOUR FROM timestamp) as hour,
                         COUNT(*) as count
-                    FROM messages
+                    FROM messages_mistral_chatbot
                     WHERE role = 'user'
                     GROUP BY EXTRACT(HOUR FROM timestamp)
                     ORDER BY hour
