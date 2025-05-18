@@ -18,7 +18,7 @@ load_dotenv()
 
 # Configuration de la base de données
 # Priorité à l'URI complète de connexion
-FOYER_API_POSTGRES_URI = os.getenv("FOYER_API_POSTGRES_URI", "postgresql://postgres:password@localhost:5432/prediction")
+FOYER_API_POSTGRES_URI = os.getenv("FOYER_API_POSTGRES_URI", "postgresql:///llama")
 logger.info(f"URI de connexion PostgreSQL: {FOYER_API_POSTGRES_URI}")
 
 # Configuration individuelle en fallback
