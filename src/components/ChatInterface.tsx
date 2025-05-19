@@ -32,7 +32,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showTrendingQuestions, setShowTrendingQuestions] = useState(true);  // Modifié pour afficher par défaut
+  const [showTrendingQuestions, setShowTrendingQuestions] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState<ChatMessageProps | null>(null);
   const [trendingQuestions, setTrendingQuestions] = useState<string[]>(initialTrendingQuestions);
   const [loadingTrendingQuestions, setLoadingTrendingQuestions] = useState(false);
@@ -206,7 +206,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   // Fonction pour scroller automatiquement vers le bas
   const handleSendMessage = async (content: string) => {
+    // Hide trending questions when a message is sent
     setShowTrendingQuestions(false);
+    setShowTrendingBelowChat(false); // Hide trending questions below chat after first message
+    
     const userMessage: ChatMessageProps = {
       role: 'user',
       content
@@ -463,18 +466,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     theme={theme}
                   />
                 </div>
-                
-                {/* Supprimé l'ancien dropdown pour les questions tendances */}
               </div>
             </div>
           </div>
 
-          {/* Questions fréquentes avec animation fade-in en dessous de la barre de chat */}
-          {trendingQuestionsData.length > 0 && (
-            <div className="px-4 pb-6 w-full fade-in-section">
-              {renderTrendingQuestions()}
-            </div>
-          )}
+          {/* Questions fréquentes - only shown in initial state or if specifically requested */}
+          {/* Removed this section to prevent showing trending questions in chat mode */}
         </div>
       )}
       
