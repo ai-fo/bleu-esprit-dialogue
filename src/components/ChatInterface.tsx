@@ -428,9 +428,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   <ChatInput 
                     onSendMessage={handleSendMessage} 
                     disabled={loading} 
-                    getInputRef={setInputRef} 
-                    onTrendingClick={toggleTrendingQuestions} 
-                    showTrendingIcon={true} 
+                    getInputRef={setInputRef}
                     theme={theme}
                   />
                 </div>
@@ -554,9 +552,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <ChatInput 
                   onSendMessage={handleSendMessage} 
                   disabled={loading} 
-                  getInputRef={setInputRef} 
-                  onTrendingClick={toggleTrendingQuestions} 
-                  showTrendingIcon={true} 
+                  getInputRef={setInputRef}
                   theme={theme}
                 />
               </div>

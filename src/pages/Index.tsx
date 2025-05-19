@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { clearConversation } from '@/lib/api';
 import { useToast } from "@/components/ui/use-toast";
 import { waitTimeInfo } from '@/components/IncidentStatus';
 import IncidentTicker from '@/components/IncidentTicker';
-import { Clock } from 'lucide-react';
+import { Clock, RefreshCw } from 'lucide-react';
 import { loadIncidentsFromStorage, initializeIncidentStorage } from '@/utils/incidentStorage';
 
 // Trending questions without having to access them from ChatInterface
