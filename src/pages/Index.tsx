@@ -1,7 +1,7 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from 'lucide-react';
 import { clearConversation } from '@/lib/api';
 import { useToast } from "@/components/ui/use-toast";
 import { waitTimeInfo } from '@/components/IncidentStatus';
@@ -190,7 +190,7 @@ const Index = () => {
               trendingQuestions={TRENDING_QUESTIONS}
               theme="user" 
               source="user"
-              trendingQuestionsTitle="Questions fréquentes posées par les utilisateurs"
+              trendingQuestionsTitle="Questions les plus posées par les utilisateurs aujourd'hui"
             />
           </div>
         </div>

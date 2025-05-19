@@ -2,14 +2,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, TrendingUp } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   getInputRef?: (ref: HTMLInputElement | null) => void;
-  onTrendingClick?: () => void;
-  showTrendingIcon?: boolean;
   theme?: 'user' | 'technician';
 }
 
@@ -17,8 +15,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   disabled = false,
   getInputRef,
-  onTrendingClick,
-  showTrendingIcon = false,
   theme = 'user'
 }) => {
   const [message, setMessage] = useState("");
@@ -30,13 +26,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
       primary: '#004c92',
       inputBorder: 'border-transparent focus-visible:border-transparent',
       buttonHover: 'hover:bg-[#004c92]/90',
-      trendingButton: 'text-[#004c92] hover:bg-[#e6f0ff]'
     },
     technician: {
       primary: '#F97316', // Changed from green to orange
       inputBorder: 'border-transparent focus-visible:border-transparent',
       buttonHover: 'hover:bg-[#F97316]/90', // Changed from green to orange
-      trendingButton: 'text-[#F97316] hover:bg-[#FFF0E0]' // Changed from green to orange
     }
   };
 
@@ -59,18 +53,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="flex items-center w-full gap-2 px-3 py-2">
-      {showTrendingIcon && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={`rounded-full ${themeColors.trendingButton}`}
-          onClick={onTrendingClick}
-        >
-          <TrendingUp className="h-4 w-4" />
-        </Button>
-      )}
-      
       <div className="relative flex-1">
         <Input
           ref={inputRef}
