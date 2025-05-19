@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import FeedbackButtons from './FeedbackButtons';
@@ -28,7 +29,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
 }) => {
   const isUser = role === 'user';
 
-  // Theme-based colors
+  // Theme-based colors - Updated technician theme from orange to red
   const colors = {
     user: {
       userBg: 'bg-[#004c92]',
@@ -39,12 +40,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
       assistantLink: 'text-[#004c92] font-medium underline hover:text-[#0060b6]'
     },
     technician: {
-      userBg: 'bg-[#F97316]', // Changed from green to orange
-      assistantBg: 'bg-[#fff8eb]', // Changed from green to orange
+      userBg: 'bg-[#ea384c]', // Changed from orange to red
+      assistantBg: 'bg-[#fff0f0]', // Changed from orange to light red
       userText: 'text-white',
       assistantText: 'text-[#1a1a1a]',
-      assistantBorder: 'border-[#fff0e0]', // Changed from green to orange
-      assistantLink: 'text-[#F97316] font-medium underline hover:text-[#e05e00]'
+      assistantBorder: 'border-[#ffebee]', // Changed from orange to red
+      assistantLink: 'text-[#ea384c] font-medium underline hover:text-[#d81b31]' // Changed from orange to red
     }
   };
 

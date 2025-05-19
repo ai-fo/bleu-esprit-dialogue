@@ -113,7 +113,7 @@ const AdminView = () => {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#fff8eb]/80">
       {/* Header */}
-      <header className="pt-2 pb-1 px-4 sm:px-6 lg:px-8 border-b border-[#F97316]/10">
+      <header className="pt-2 pb-1 px-4 sm:px-6 lg:px-8 border-b border-[#ea384c]/10">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           {/* Logo and title - fully left aligned with large font size */}
           <div className="flex items-center pl-0">
@@ -128,7 +128,7 @@ const AdminView = () => {
                 />
               </div>
             )}
-            <h1 className="text-3xl sm:text-4xl font-bold text-[#F97316] transition-all duration-500 cursor-pointer ml-0 mr-2">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[#ea384c] transition-all duration-500 cursor-pointer ml-0 mr-2">
               Oskour Admin
             </h1>
             
@@ -137,11 +137,11 @@ const AdminView = () => {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full hover:bg-[#FFF0E0]/50 h-8 w-8" 
+                className="rounded-full hover:bg-[#ffebee]/50 h-8 w-8" 
                 onClick={handleNewChat} 
                 title="Nouvelle conversation"
               >
-                <RefreshCw className="h-4 w-4 text-[#F97316]" />
+                <RefreshCw className="h-4 w-4 text-[#ea384c]" />
               </Button>
             )}
           </div>
@@ -156,7 +156,7 @@ const AdminView = () => {
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/'} 
-              className="border-[#F97316] text-[#F97316] hover:bg-[#F97316]/10"
+              className="border-[#ea384c] text-[#ea384c] hover:bg-[#ea384c]/10"
             >
               Vue Utilisateur
             </Button>
@@ -164,17 +164,17 @@ const AdminView = () => {
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/cockpit'} 
-              className="border-[#F97316] text-[#F97316] hover:bg-[#F97316]/10"
+              className="border-[#ea384c] text-[#ea384c] hover:bg-[#ea384c]/10"
             >
               Cockpit
             </Button>
             
             {/* Wait time info */}
             <div className="flex items-center">
-              <div className="flex items-center gap-2 bg-[#FEC6A1] rounded-full px-3 py-1 shadow-sm border border-[#F97316]">
+              <div className="flex items-center gap-2 bg-[#ffb8c1] rounded-full px-3 py-1 shadow-sm border border-[#ea384c]">
                 <Clock className="h-3 w-3 text-[#ea384c]" />
-                <span className="text-xs text-[#F97316] font-medium">~{waitTimeInfo.minutes} min</span>
-                <span className="hidden sm:inline text-xs text-[#F97316]/80">{waitTimeInfo.callers} appelants</span>
+                <span className="text-xs text-[#ea384c] font-medium">~{waitTimeInfo.minutes} min</span>
+                <span className="hidden sm:inline text-xs text-[#ea384c]/80">{waitTimeInfo.callers} appelants</span>
               </div>
             </div>
           </div>
