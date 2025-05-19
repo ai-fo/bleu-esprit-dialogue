@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration du mode d'appel au modèle
-DEFAULT_MODE = "local"  # Choisir entre "api" (API Mistral) ou "local" (serveur local)
+DEFAULT_MODE = "api"  # Choisir entre "api" (API Mistral) ou "local" (serveur local)
 
 # Configuration API Mistral
 # Pour activer le mode API:
@@ -28,6 +28,8 @@ TEMP_DIR = BASE_DIR / "temp_images"
 TRANSCRIPTS_DIR = BASE_DIR / "transcripts"  # Dossier pour les transcriptions complètes
 TRANSCRIPTS_TEXT_ONLY_DIR = BASE_DIR / "transcripts_text_only"  # Dossier pour les transcriptions sans images
 PROMPTS_DIR = BASE_DIR / "prompts"  # Dossier pour stocker les prompts
+PDF_ADMINS_FOLDER = BASE_DIR / "pdfs_admins"  # Dossier pour les PDFs des admins
+TRANSCRIPTS_ADMIN_DIR = BASE_DIR / "transcript_admin"  # Dossier pour les transcriptions des admins
 
 # Créer les dossiers s'ils n'existent pas
 PDF_FOLDER.mkdir(exist_ok=True)
@@ -36,7 +38,8 @@ TEMP_DIR.mkdir(exist_ok=True)
 TRANSCRIPTS_DIR.mkdir(exist_ok=True)  # Création du dossier des transcriptions
 TRANSCRIPTS_TEXT_ONLY_DIR.mkdir(exist_ok=True)  # Création du dossier des transcriptions sans images
 PROMPTS_DIR.mkdir(exist_ok=True)  # Création du dossier des prompts
-
+PDF_ADMINS_FOLDER.mkdir(exist_ok=True)
+TRANSCRIPTS_ADMIN_DIR.mkdir(exist_ok=True)
 
 PIXTRAL_URL = "http://localhost:8085/v1/chat/completions"  # Port pour Pixtral
 MISTRAL_URL = "http://localhost:5263/v1/chat/completions"  # Port pour Mistral

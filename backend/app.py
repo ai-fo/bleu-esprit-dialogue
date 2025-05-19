@@ -8,7 +8,7 @@ import httpx
 import time
 import random
 import traceback
-from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, MINISTRAL_PATH, MINISTRAL_URL
+from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, MINISTRAL_PATH, MINISTRAL_URL, TRANSCRIPTS_DIR, TRANSCRIPTS_ADMIN_DIR
 
 # Import fonctions du module rag
 from rag import (
@@ -129,7 +129,13 @@ def chat_endpoint(req: ChatRequest):
     """Combine RAG context with LLM response for a chatbot hotline with conversation history."""
     # Démarrer le minuteur global
     start_total = time.time()
-    
+
+    # Sélection du dossier de knowledge base selon la source
+    if req.source == "admin":
+        knowledge_base_path = str(TRANSCRIPTS_ADMIN_DIR)
+    else:
+        knowledge_base_path = str(TRANSCRIPTS_DIR)
+
     # Enregistrer ou mettre à jour la session dans la base de données avec la source
     try:
         save_session(req.session_id, req.source)
@@ -143,7 +149,7 @@ def chat_endpoint(req: ChatRequest):
     
     # Retrieve context for prompt
     start_rag = time.time()
-    context, files = rag(req.question, req.knowledge_base)
+    context, files = rag(req.question, knowledge_base_path)
     rag_time = time.time() - start_rag
     logger.info(f"RAG a trouvé {len(files)} fichiers pour la question: {req.question}")
     logger.info(f"Fichiers trouvés: {files}")
@@ -281,17 +287,17 @@ def chat_endpoint(req: ChatRequest):
             for file in files:
                 # Extraire le nom du fichier à partir du chemin complet
                 filename = file.split('/')[-1].replace('.txt', '.pdf')
-                
-                # Vérifier que le fichier PDF existe réellement
-                pdf_file_path = PDF_FOLDER / filename
+                # Choisir le bon dossier selon la source
+                if req.source == "admin":
+                    pdf_file_path = PDF_ADMINS_FOLDER / filename
+                    pdf_link = f"http://localhost:8077/pdf_admin/{filename}"
+                else:
+                    pdf_file_path = PDF_FOLDER / filename
+                    pdf_link = f"http://localhost:8077/pdf/{filename}"
                 if not pdf_file_path.exists():
                     logger.warning(f"Fichier PDF non trouvé: {pdf_file_path}")
                     continue
-                
-                # Créer le lien vers le PDF
-                pdf_link = f"http://localhost:8077/pdf/{filename}"
                 pdf_links.append(pdf_link)
-            
             # Créer un message séparé pour les documents
             if pdf_links:
                 if len(pdf_links) == 1:

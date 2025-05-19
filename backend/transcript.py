@@ -8,7 +8,7 @@ import json
 from PIL import Image
 import io
 import tempfile
-from config import PDF_FOLDER, CACHE_DIR, IMAGE_CACHE_FILE, TRANSCRIPTS_DIR, TRANSCRIPTS_TEXT_ONLY_DIR, PIXTRAL_URL, PIXTRAL_PATH, DEFAULT_MODE
+from config import PDF_FOLDER, CACHE_DIR, IMAGE_CACHE_FILE, TRANSCRIPTS_DIR, TRANSCRIPTS_TEXT_ONLY_DIR, PIXTRAL_URL, PIXTRAL_PATH, DEFAULT_MODE, PDF_ADMINS_FOLDER, TRANSCRIPTS_ADMIN_DIR
 import requests
 
 load_dotenv()
@@ -224,7 +224,62 @@ def process_all_pdfs():
     with open(image_presence_json, 'w', encoding='utf-8') as f:
         json.dump(image_presence_data, f, ensure_ascii=False, indent=2)
 
+def save_transcript_admin(transcript, pdf_path, contains_image):
+    """Sauvegarde la transcription dans un fichier texte dans le dossier transcript_admin, et indique si le PDF contient une image."""
+    output_filename = Path(pdf_path).name.replace('.pdf', '.txt')
+    output_path = TRANSCRIPTS_ADMIN_DIR / output_filename
+    # Même logique que save_transcript
+    pages = {}
+    for item in transcript:
+        page = item.get("page", 1) if item["type"] == "image" else 1
+        if page not in pages:
+            pages[page] = {"text": [], "images": []}
+        if item["type"] == "text":
+            pages[page]["text"].append(item["content"])
+        else:
+            pages[page]["images"].append(item)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(f"Transcription de: {Path(pdf_path).name}\n")
+        f.write(f"Contient une image : {'OUI' if contains_image else 'NON'}\n")
+        f.write("=" * 50 + "\n\n\n")
+        image_counter = 1
+        for page_num in sorted(pages.keys()):
+            f.write(f"\n{'=' * 20} PAGE {page_num} {'=' * 20}\n\n")
+            for text in pages[page_num]["text"]:
+                f.write(text)
+                f.write("\n\n")
+            for image in pages[page_num]["images"]:
+                f.write(f"\n{'=' * 20} IMAGE {image_counter} {'=' * 20}\n")
+                f.write(image["description"])
+                f.write(f"\n{'=' * 60}\n\n")
+                image_counter += 1
+
+def process_all_admin_pdfs():
+    """Traite tous les PDFs dans le dossier pdfs_admins et sauvegarde dans transcript_admin."""
+    pdf_folder = Path(PDF_ADMINS_FOLDER)
+    CACHE_DIR.mkdir(exist_ok=True)
+    TRANSCRIPTS_ADMIN_DIR.mkdir(exist_ok=True)
+    # Fichier JSON pour la présence d'images
+    image_presence_json = TRANSCRIPTS_ADMIN_DIR / "pdf_image_presence.json"
+    if image_presence_json.exists():
+        with open(image_presence_json, 'r', encoding='utf-8') as f:
+            image_presence_data = json.load(f)
+    else:
+        image_presence_data = {}
+    for pdf_file in pdf_folder.glob("*.pdf"):
+        print(f"Traitement de {pdf_file.name} (admin)...")
+        try:
+            transcript, contains_image = process_pdf(pdf_file)
+            save_transcript_admin(transcript, pdf_file, contains_image)
+            image_presence_data[pdf_file.name] = contains_image
+            print(f"Transcription terminée pour {pdf_file.name} (admin)")
+            print(f"Fichier complet sauvegardé dans: {TRANSCRIPTS_ADMIN_DIR / pdf_file.name.replace('.pdf', '.txt')}")
+        except Exception as e:
+            print(f"Erreur lors du traitement de {pdf_file.name} (admin): {str(e)}")
+    with open(image_presence_json, 'w', encoding='utf-8') as f:
+        json.dump(image_presence_data, f, ensure_ascii=False, indent=2)
+
 if __name__ == "__main__":
-    
     process_all_pdfs()
+    process_all_admin_pdfs()
     print(DEFAULT_MODE)

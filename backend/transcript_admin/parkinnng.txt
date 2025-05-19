@@ -1,0 +1,24 @@
+Transcription de: parkinnng.pdf
+Contient une image : OUI
+==================================================
+
+
+
+==================== PAGE 1 ====================
+
+acceder aux logs dag airflow parking  
+ouvrir airflow sur localhost 8090 
+cliquer sur le dag parking reservation  
+ 
+Cliquer sur event log
+
+
+==================== IMAGE 1 ====================
+[ERREUR] Impossible d'analyser l'image via Pixtral local.
+============================================================
+
+
+==================== IMAGE 2 ====================
+[ERREUR] Impossible d'analyser l'image via Pixtral local.
+============================================================
+
