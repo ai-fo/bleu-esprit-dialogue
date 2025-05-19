@@ -37,6 +37,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [trendingQuestions, setTrendingQuestions] = useState<string[]>(initialTrendingQuestions);
   const [loadingTrendingQuestions, setLoadingTrendingQuestions] = useState(false);
   const [trendingQuestionsData, setTrendingQuestionsData] = useState<{ text: string; application?: string }[]>([]);
+  const [showTrendingBelowChat, setShowTrendingBelowChat] = useState(true); // État pour afficher les questions sous le chat
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -386,6 +387,45 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   
   const isInitialState = messages.length === 0;
   
+  // Rendu du composant TrendingQuestions
+  const renderTrendingQuestions = () => {
+    return (
+      <div className="w-full max-w-3xl mx-auto">
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp className={`h-4 w-4 text-[${themeColors.primary}]`} />
+          <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>{trendingQuestionsTitle}</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {trendingQuestionsData.length > 0 ? (
+            trendingQuestionsData.map((item, index) => (
+              <button 
+                key={index} 
+                onClick={() => {
+                  handleSendMessage(item.text);
+                }} 
+                className={`flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group trending-question delay-${index}`}
+              >
+                <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
+                  {index + 1}
+                </span>
+                <div className="flex-1">
+                  <span>{item.text}</span>
+                </div>
+              </button>
+            ))
+          ) : (
+            <div className="text-center p-3 text-gray-500 text-sm col-span-full">
+              {loadingTrendingQuestions 
+                ? "Chargement des questions tendances..." 
+                : "Aucune question tendance disponible pour le moment"}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+  
   return (
     <div className="w-full flex flex-col h-full">
       {!isInitialState && (
@@ -433,91 +473,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   />
                 </div>
                 
-                {/* Trending Questions Dropdown for conversation mode */}
-                {showTrendingQuestions && (
-                  <div className="absolute bottom-full mb-3 w-full max-w-3xl bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-10">
-                    <div className="flex items-center justify-between p-3 border-b border-gray-100">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
-                        <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>{trendingQuestionsTitle}</h3>
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      {trendingQuestionsData.length > 0 ? (
-                        trendingQuestionsData.map((item, index) => (
-                          <button 
-                            key={index} 
-                            onClick={() => {
-                              handleSendMessage(item.text);
-                              setShowTrendingQuestions(false);
-                            }} 
-                            className={`w-full flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg my-1.5 border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group`}
-                            style={{ 
-                              animation: `fadeIn 0.5s ease-out forwards`,
-                              animationDelay: `${index * 0.15}s`,
-                              opacity: 0
-                            }}
-                          >
-                            <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
-                              {index + 1}
-                            </span>
-                            <div className="flex-1">
-                              <span>{item.text}</span>
-                            </div>
-                          </button>
-                        ))
-                      ) : (
-                        <div className="text-center p-3 text-gray-500 text-sm">
-                          {loadingTrendingQuestions 
-                            ? "Chargement des questions tendances..." 
-                            : "Aucune question tendance disponible pour le moment"}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* Supprimé l'ancien dropdown pour les questions tendances */}
               </div>
             </div>
           </div>
 
-          {/* New trending questions section below chat with progressive fade effect */}
-          <div className="px-4 pb-6 max-w-3xl mx-auto w-full">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className={`h-4 w-4 text-[${themeColors.primary}]`} />
-              <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>{trendingQuestionsTitle}</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {trendingQuestionsData.length > 0 ? (
-                trendingQuestionsData.map((item, index) => (
-                  <button 
-                    key={index} 
-                    onClick={() => {
-                      handleSendMessage(item.text);
-                    }} 
-                    className={`flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group`}
-                    style={{ 
-                      animation: `fadeIn 0.8s ease-out forwards`,
-                      animationDelay: `${index * 0.15}s`,
-                      opacity: 0
-                    }}
-                  >
-                    <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
-                      {index + 1}
-                    </span>
-                    <div className="flex-1">
-                      <span>{item.text}</span>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="text-center p-3 text-gray-500 text-sm col-span-full">
-                  {loadingTrendingQuestions 
-                    ? "Chargement des questions tendances..." 
-                    : "Aucune question tendance disponible pour le moment"}
-                </div>
-              )}
-            </div>
+          {/* Questions fréquentes avec animation fade-in en dessous de la barre de chat */}
+          <div className="px-4 pb-6 w-full fade-in-section">
+            {renderTrendingQuestions()}
           </div>
         </div>
       )}
@@ -556,90 +519,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   theme={theme}
                 />
               </div>
-              
-              {/* Trending Questions Dropdown */}
-              {showTrendingQuestions && (
-                <div className="absolute z-10 mt-3 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="flex items-center justify-between p-3 border-b border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
-                      <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>{trendingQuestionsTitle}</h3>
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    {trendingQuestionsData.length > 0 ? (
-                      trendingQuestionsData.map((item, index) => (
-                        <button 
-                          key={index} 
-                          onClick={() => {
-                            handleSendMessage(item.text);
-                            setShowTrendingQuestions(false);
-                          }} 
-                          className={`w-full flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg my-1.5 border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group`}
-                          style={{ 
-                            animation: `fadeIn 0.5s ease-out forwards`,
-                            animationDelay: `${index * 0.15}s`,
-                            opacity: 0
-                          }}
-                        >
-                          <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
-                            {index + 1}
-                          </span>
-                          <div className="flex-1">
-                            <span>{item.text}</span>
-                          </div>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="text-center p-3 text-gray-500 text-sm">
-                        {loadingTrendingQuestions 
-                          ? "Chargement des questions tendances..." 
-                          : "Aucune question tendance disponible pour le moment"}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
             
-            {/* Trending questions below search with progressive fade effect */}
-            <div className="w-full max-w-xl mx-auto mt-12 px-4">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className={`h-4 w-4 text-[${themeColors.primary}]`} />
-                <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>{trendingQuestionsTitle}</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {trendingQuestionsData.length > 0 ? (
-                  trendingQuestionsData.map((item, index) => (
-                    <button 
-                      key={index} 
-                      onClick={() => {
-                        handleSendMessage(item.text);
-                      }} 
-                      className={`flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group`}
-                      style={{ 
-                        animation: `fadeIn 0.8s ease-out forwards`,
-                        animationDelay: `${index * 0.15}s`,
-                        opacity: 0
-                      }}
-                    >
-                      <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
-                        {index + 1}
-                      </span>
-                      <div className="flex-1">
-                        <span>{item.text}</span>
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <div className="text-center p-3 text-gray-500 text-sm col-span-full">
-                    {loadingTrendingQuestions 
-                      ? "Chargement des questions tendances..." 
-                      : "Aucune question tendance disponible pour le moment"}
-                  </div>
-                )}
-              </div>
+            {/* Questions fréquentes avec animation fade-in sous la barre de recherche */}
+            <div className="w-full max-w-xl mx-auto mt-12 px-4 fade-in-section">
+              {renderTrendingQuestions()}
             </div>
           </div>
         </div>
