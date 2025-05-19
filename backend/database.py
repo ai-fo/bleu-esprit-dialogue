@@ -622,7 +622,7 @@ def get_application_stats() -> List[Dict]:
             # Récupérer les questions tendances qui ont une application associée
             cur.execute(
                 """
-                SELECT application, COUNT(*) as count, MAX(last_updated) as last_updated
+                SELECT application, SUM(count) as count, MAX(last_updated) as last_updated
                 FROM trending_questions_mistral_chatbot
                 WHERE application IS NOT NULL
                 GROUP BY application
