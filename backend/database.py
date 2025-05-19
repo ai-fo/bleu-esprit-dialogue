@@ -656,7 +656,7 @@ def get_application_stats() -> List[Dict]:
                         """
                         SELECT COUNT(*) as count
                         FROM messages_mistral_chatbot
-                        WHERE role = 'user' AND content ILIKE %s
+                        WHERE role = 'user' AND content ILIKE %s AND DATE(timestamp) = DATE(NOW())
                         """,
                         (f'%{app_name}%',)
                     )

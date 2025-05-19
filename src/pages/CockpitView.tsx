@@ -154,40 +154,27 @@ const CockpitView = () => {
   
   // Generate application statistics based on incidents and API data
   const appStatistics = useMemo<AppStatistics[]>(() => {
-    // Si les statistiques des applications sont en cours de chargement ou vides, utiliser les incidents
+    // Si les statistiques des applications sont en cours de chargement ou vides, afficher 0 incidents
     if (isLoadingAppStats || applicationStatistics.length === 0) {
       const stats: AppStatistics[] = [];
-      
-      // Get the full list of applications from default incident list
       const defaultApps = defaultIncidentList;
-      
-      // Create statistics for each application
       defaultApps.forEach(app => {
-        // Count how many times this application appears with 'incident' status
-        const currentStatus = incidents.find(inc => inc.id === app.id)?.status || 'ok';
-        // Utiliser 0 pour les applications sans incidents, sinon un nombre aléatoire pour les incidents
-        const randomCount = currentStatus === 'incident' ? Math.floor(Math.random() * 45) + 5 : 0;
-        
         stats.push({
           id: app.id,
           name: app.name,
           iconComponent: app.icon,
-          incidentCount: randomCount,
-          status: currentStatus
+          incidentCount: 0,
+          status: 'ok'
         });
       });
-      
-      // Sort by incident count (descending)
-      return stats.sort((a, b) => b.incidentCount - a.incidentCount);
+      return stats;
     } else {
       // Utiliser les données de l'API
       return applicationStatistics.map(app => {
-        // Trouver l'icône correspondante dans defaultIncidentList
         const defaultApp = defaultIncidentList.find(defaultApp => 
           defaultApp.name.toLowerCase() === app.name.toLowerCase() || 
           defaultApp.id === app.id
         );
-        
         return {
           id: app.id,
           name: app.name,
