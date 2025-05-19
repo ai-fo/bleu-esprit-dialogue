@@ -28,7 +28,6 @@ interface AppStatistics {
   name: string;
   iconComponent: React.ReactNode;
   incidentCount: number;
-  callerCount: number;
   status: 'ok' | 'incident';
 }
 
@@ -168,15 +167,12 @@ const CockpitView = () => {
         const currentStatus = incidents.find(inc => inc.id === app.id)?.status || 'ok';
         // Utiliser 0 pour les applications sans incidents, sinon un nombre aléatoire pour les incidents
         const randomCount = currentStatus === 'incident' ? Math.floor(Math.random() * 45) + 5 : 0;
-        // Génération d'un nombre aléatoire d'appelants par application
-        const randomCallerCount = currentStatus === 'incident' ? Math.floor(randomCount * 1.5) : 0;
         
         stats.push({
           id: app.id,
           name: app.name,
           iconComponent: app.icon,
           incidentCount: randomCount,
-          callerCount: randomCallerCount,
           status: currentStatus
         });
       });
@@ -195,10 +191,8 @@ const CockpitView = () => {
         return {
           id: app.id,
           name: app.name,
-          // Utiliser l'icône par défaut ou une icône générique
           iconComponent: defaultApp?.icon || <AlertTriangle className="h-4 w-4 text-yellow-500" />,
           incidentCount: app.incident_count,
-          callerCount: app.user_count,
           status: app.status as 'ok' | 'incident'
         };
       });
@@ -439,7 +433,6 @@ const CockpitView = () => {
                           <TableRow className="border-[#9b87f5]/20 hover:bg-[#2A3040]">
                             <TableHead className="text-[#D6BCFA]">Application</TableHead>
                             <TableHead className="text-[#D6BCFA]">Incidents déclarés</TableHead>
-                            <TableHead className="text-[#D6BCFA]">Appelants</TableHead>
                             <TableHead className="text-[#D6BCFA]">Statut</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -459,9 +452,6 @@ const CockpitView = () => {
                               </TableCell>
                               <TableCell className="font-bold">
                                 {app.incidentCount}
-                              </TableCell>
-                              <TableCell className="font-bold">
-                                {app.callerCount}
                               </TableCell>
                               <TableCell>
                                 {app.status === 'ok' ? (
@@ -508,12 +498,6 @@ const CockpitView = () => {
                                 <span className="text-sm text-gray-400">Incidents</span>
                                 <p className="text-xl font-bold text-[#9b87f5]">
                                   {app.incidentCount}
-                                </p>
-                              </div>
-                              <div className="text-center">
-                                <span className="text-sm text-gray-400">Appelants</span>
-                                <p className="text-xl font-bold text-[#9b87f5]">
-                                  {app.callerCount}
                                 </p>
                               </div>
                             </div>
