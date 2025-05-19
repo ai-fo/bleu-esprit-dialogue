@@ -8,6 +8,7 @@ import logging
 from dotenv import load_dotenv
 import random
 import urllib.parse
+from config import DEFAULT_MODE  # Ajout de l'import du mode
 
 # Configurer le logging
 logging.basicConfig(level=logging.INFO)
@@ -31,13 +32,13 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 def get_db_connection():
     """Établir une connexion à la base de données PostgreSQL."""
     try:
-        # Utiliser l'URI complète si disponible
-        if FOYER_API_POSTGRES_URI:
-            logger.info(f"Connexion à la base de données via URI")
+        # Si on est en mode local, utiliser l'URI complète si disponible
+        if DEFAULT_MODE == "local" and FOYER_API_POSTGRES_URI:
+            logger.info(f"[LOCAL] Connexion à la base de données via URI")
             conn = psycopg2.connect(FOYER_API_POSTGRES_URI, cursor_factory=RealDictCursor)
         else:
-            # Fallback vers la connexion avec paramètres individuels
-            logger.info(f"Connexion à la base de données via paramètres individuels")
+            # En mode API ou si pas d'URI, utiliser les paramètres individuels du .env
+            logger.info(f"[API] Connexion à la base de données via paramètres individuels")
             conn = psycopg2.connect(
                 dbname=DB_NAME,
                 user=DB_USER,
