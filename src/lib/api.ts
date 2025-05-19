@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "sonner";
@@ -92,7 +91,7 @@ export async function sendFeedback(data: FeedbackData): Promise<any> {
 // Fonction pour effacer la conversation actuelle
 export async function clearConversation(): Promise<any> {
   try {
-    const response = await axios.post(`${BASE_URL}/clear_conversation`, {
+    const response = await axios.post(`${BASE_URL}/clear_history`, {
       session_id: SESSION_ID
     });
     return response.data;
