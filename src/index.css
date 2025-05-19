@@ -256,14 +256,14 @@ body {
 
 /* Cockpit styles */
 .cockpit-slider .slider-thumb {
-  @apply bg-[#9b87f5] border border-white;
+  @apply bg-[#F05941] border border-white; /* Updated to reddish-orange */
   width: 16px;
   height: 16px;
   border-radius: 50%;
 }
 
 .cockpit-slider .slider-track {
-  @apply bg-[#9b87f5]/30;
+  @apply bg-[#F05941]/30; /* Updated to reddish-orange */
   height: 4px;
 }
 
@@ -273,7 +273,7 @@ body {
 
 .cockpit-card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(155, 135, 245, 0.2);
+  box-shadow: 0 10px 25px rgba(240, 89, 65, 0.2); /* Updated to reddish-orange */
 }
 
 /* Enhanced fade-in for trending questions */

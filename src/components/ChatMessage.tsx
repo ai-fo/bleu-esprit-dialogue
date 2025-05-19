@@ -29,7 +29,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
 }) => {
   const isUser = role === 'user';
 
-  // Theme-based colors - Updated technician theme from orange to red
+  // Theme-based colors - Updated to reddish-orange for technician theme
   const colors = {
     user: {
       userBg: 'bg-[#004c92]',
@@ -40,12 +40,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
       assistantLink: 'text-[#004c92] font-medium underline hover:text-[#0060b6]'
     },
     technician: {
-      userBg: 'bg-[#ea384c]', // Changed from orange to red
-      assistantBg: 'bg-[#fff0f0]', // Changed from orange to light red
+      userBg: 'bg-[#F05941]', // Changed to reddish-orange
+      assistantBg: 'bg-[#FFF5F0]', // Light reddish-orange background
       userText: 'text-white',
       assistantText: 'text-[#1a1a1a]',
-      assistantBorder: 'border-[#ffebee]', // Changed from orange to red
-      assistantLink: 'text-[#ea384c] font-medium underline hover:text-[#d81b31]' // Changed from orange to red
+      assistantBorder: 'border-[#FFDAC1]', // Light border for reddish-orange theme
+      assistantLink: 'text-[#F05941] font-medium underline hover:text-[#D03921]' // Links in reddish-orange
     }
   };
 

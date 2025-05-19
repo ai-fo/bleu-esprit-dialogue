@@ -45,7 +45,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const initialLogoRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
   
-  // Theme-based colors - Updated technician theme from orange to red
+  // Theme-based colors - Updated to reddish-orange for technician theme
   const colors = {
     user: {
       primary: '#004c92',
@@ -56,12 +56,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       groupHover: 'bg-[#004c92]'
     },
     technician: {
-      primary: '#ea384c', // Changed from orange to red
-      light: '#ffebee',   // Light red background
-      accent: '#ffb8c1',  // Accent red
+      primary: '#F05941', // Changed to reddish-orange
+      light: '#FFF5F0',   // Light reddish-orange background
+      accent: '#FFDAB9',  // Accent for reddish-orange theme
       gradient: 'from-white to-red-50/80',
-      hover: 'from-red-50 to-red-100/80',
-      groupHover: 'bg-[#ea384c]'
+      hover: 'from-red-50 to-orange-100/80',
+      groupHover: 'bg-[#F05941]'
     }
   };
   
