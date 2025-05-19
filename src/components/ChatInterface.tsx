@@ -24,7 +24,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   chatbotName = "Bill",
   initialMessage = "Bonjour ! Je suis Bill, votre assistant personnel. Comment puis-je vous aider aujourd'hui ?",
   onFirstMessage,
-  trendingQuestions: initialTrendingQuestions = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"],
+  trendingQuestions: initialTrendingQuestions = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte", "Comment réinitialiser mon mot de passe"],
   theme = 'user',
   trendingQuestionsTitle = "Questions les plus posées par les utilisateurs aujourd'hui",
   source = 'user'  // Par défaut, la source est 'user'
@@ -84,7 +84,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     try {
       setLoadingTrendingQuestions(true);
       // Récupérer uniquement les questions tendances correspondant à la source actuelle
-      const trendingData = await getTrendingQuestions(3, forceUpdate, source);
+      // Mise à jour: Récupérer 4 questions au lieu de 3
+      const trendingData = await getTrendingQuestions(4, forceUpdate, source);
       
       if (trendingData && trendingData.length > 0) {
         // Extraire les questions des données avec les applications

@@ -441,7 +441,7 @@ def feedback_endpoint(req: FeedbackRequest):
         return {"success": False, "message": error_message}
 
 @app.get("/trending_questions", response_model=List[TrendingQuestion])
-def get_trending_questions_endpoint(limit: int = 3, force_update: bool = False, source: str = 'all'):
+def get_trending_questions_endpoint(limit: int = 4, force_update: bool = False, source: str = 'all'):
     """Récupérer les questions tendances"""
     if force_update:
         # Forcer la mise à jour des tendances
@@ -567,4 +567,4 @@ def init_db_endpoint():
 if __name__ == "__main__":
     import uvicorn
     import threading
-    uvicorn.run(app, host="0.0.0.0", port=8091) 
+    uvicorn.run(app, host="0.0.0.0", port=8091)
