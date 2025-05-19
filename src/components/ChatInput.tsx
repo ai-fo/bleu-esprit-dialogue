@@ -9,13 +9,17 @@ interface ChatInputProps {
   disabled?: boolean;
   getInputRef?: (ref: HTMLInputElement | null) => void;
   theme?: 'user' | 'technician';
+  onTrendingClick?: () => void;
+  showTrendingIcon?: boolean;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   disabled = false,
   getInputRef,
-  theme = 'user'
+  theme = 'user',
+  onTrendingClick,
+  showTrendingIcon = false
 }) => {
   const [message, setMessage] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
