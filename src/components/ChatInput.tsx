@@ -24,7 +24,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [message, setMessage] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Theme-based colors
+  // Theme-based colors - Updated technician theme from orange to red
   const colors = {
     user: {
       primary: '#004c92',
@@ -32,9 +32,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
       buttonHover: 'hover:bg-[#004c92]/90',
     },
     technician: {
-      primary: '#F97316', // Changed from green to orange
+      primary: '#ea384c', // Changed from orange to red
       inputBorder: 'border-transparent focus-visible:border-transparent',
-      buttonHover: 'hover:bg-[#F97316]/90', // Changed from green to orange
+      buttonHover: 'hover:bg-[#ea384c]/90', // Changed from orange to red
     }
   };
 
