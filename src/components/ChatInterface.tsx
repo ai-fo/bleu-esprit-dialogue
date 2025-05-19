@@ -103,15 +103,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         
         console.log(`Questions tendances récupérées pour la source '${source}':`, trendingData);
       } else {
-        // Si aucune question tendance n'est trouvée, conserver les valeurs par défaut
-        console.log(`Aucune question tendance trouvée pour la source '${source}', utilisation des valeurs par défaut`);
+        // Si aucune question tendance n'est trouvée, ne pas utiliser les valeurs par défaut
+        // et réinitialiser les données
+        console.log(`Aucune question tendance trouvée pour la source '${source}'`);
         
-        // Créer les données par défaut
-        const defaultWithApps = initialTrendingQuestions.map(q => ({
-          text: q,
-          application: undefined
-        }));
-        setTrendingQuestionsData(defaultWithApps);
+        setTrendingQuestionsData([]);
+        setTrendingQuestions([]);
       }
     } catch (error) {
       console.error(`Erreur lors de la récupération des questions tendances pour la source '${source}':`, error);
@@ -122,12 +119,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         duration: 3000
       });
       
-      // En cas d'erreur, utiliser les valeurs par défaut
-      const defaultWithApps = initialTrendingQuestions.map(q => ({
-        text: q,
-        application: undefined
-      }));
-      setTrendingQuestionsData(defaultWithApps);
+      // En cas d'erreur, réinitialiser les valeurs
+      setTrendingQuestionsData([]);
+      setTrendingQuestions([]);
     } finally {
       setLoadingTrendingQuestions(false);
     }
@@ -389,6 +383,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   
   // Rendu du composant TrendingQuestions
   const renderTrendingQuestions = () => {
+    // Si aucune question tendance n'est disponible, ne rien afficher
+    if (!trendingQuestionsData.length) {
+      return null;
+    }
+    
     return (
       <div className="w-full max-w-3xl mx-auto">
         <div className="flex items-center gap-2 mb-3">
@@ -397,30 +396,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {trendingQuestionsData.length > 0 ? (
-            trendingQuestionsData.map((item, index) => (
-              <button 
-                key={index} 
-                onClick={() => {
-                  handleSendMessage(item.text);
-                }} 
-                className={`flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group trending-question delay-${index}`}
-              >
-                <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
-                  {index + 1}
-                </span>
-                <div className="flex-1">
-                  <span>{item.text}</span>
-                </div>
-              </button>
-            ))
-          ) : (
-            <div className="text-center p-3 text-gray-500 text-sm col-span-full">
-              {loadingTrendingQuestions 
-                ? "Chargement des questions tendances..." 
-                : "Aucune question tendance disponible pour le moment"}
-            </div>
-          )}
+          {trendingQuestionsData.map((item, index) => (
+            <button 
+              key={index} 
+              onClick={() => {
+                handleSendMessage(item.text);
+              }} 
+              className={`flex items-center text-left p-3 bg-gradient-to-r ${themeColors.gradient} hover:${themeColors.hover} rounded-lg border border-[${themeColors.light}] shadow-sm hover:shadow transition-all duration-200 text-[#333] hover:text-[${themeColors.primary}] text-sm group trending-question delay-${index}`}
+            >
+              <span className={`w-6 h-6 flex items-center justify-center rounded-full bg-${theme === 'user' ? 'blue' : 'green'}-100 text-[${themeColors.primary}] text-xs mr-3 group-hover:${themeColors.groupHover} group-hover:text-white transition-colors`}>
+                {index + 1}
+              </span>
+              <div className="flex-1">
+                <span>{item.text}</span>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     );
@@ -479,9 +470,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
 
           {/* Questions fréquentes avec animation fade-in en dessous de la barre de chat */}
-          <div className="px-4 pb-6 w-full fade-in-section">
-            {renderTrendingQuestions()}
-          </div>
+          {trendingQuestionsData.length > 0 && (
+            <div className="px-4 pb-6 w-full fade-in-section">
+              {renderTrendingQuestions()}
+            </div>
+          )}
         </div>
       )}
       
@@ -522,9 +515,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
             
             {/* Questions fréquentes avec animation fade-in sous la barre de recherche */}
-            <div className="w-full max-w-xl mx-auto mt-12 px-4 fade-in-section">
-              {renderTrendingQuestions()}
-            </div>
+            {trendingQuestionsData.length > 0 && (
+              <div className="w-full max-w-xl mx-auto mt-12 px-4 fade-in-section">
+                {renderTrendingQuestions()}
+              </div>
+            )}
           </div>
         </div>
       )}
