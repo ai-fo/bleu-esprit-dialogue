@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "sonner";
@@ -49,6 +50,13 @@ export interface Incident {
   date: Date;
 }
 
+// Interface pour le feedback
+export interface FeedbackData {
+  message_id: number;
+  rating: number;
+  comment?: string;
+}
+
 // Fonction pour envoyer un message au backend
 export async function sendMessage(content: string, source: string = 'user'): Promise<any> {
   try {
@@ -61,6 +69,35 @@ export async function sendMessage(content: string, source: string = 'user'): Pro
     return response.data;
   } catch (error) {
     console.error('Erreur lors de l\'envoi du message:', error);
+    throw error;
+  }
+}
+
+// Fonction pour envoyer un feedback
+export async function sendFeedback(data: FeedbackData): Promise<any> {
+  try {
+    const response = await axios.post(`${BASE_URL}/feedback`, {
+      message_id: data.message_id,
+      rating: data.rating,
+      comment: data.comment || '',
+      session_id: SESSION_ID
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi du feedback:', error);
+    throw error;
+  }
+}
+
+// Fonction pour effacer la conversation actuelle
+export async function clearConversation(): Promise<any> {
+  try {
+    const response = await axios.post(`${BASE_URL}/clear_conversation`, {
+      session_id: SESSION_ID
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la réinitialisation de la conversation:', error);
     throw error;
   }
 }
