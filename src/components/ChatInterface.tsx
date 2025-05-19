@@ -4,7 +4,7 @@ import ChatInput from './ChatInput';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { sendMessage, getTrendingQuestions, TrendingQuestion } from '@/lib/api';
 import { useToast } from "@/components/ui/use-toast";
-import { TrendingUp, Headset, RefreshCw } from 'lucide-react';
+import { TrendingUp, Headset } from 'lucide-react';
 import IncidentStatus, { waitTimeInfo, appIncidents } from './IncidentStatus';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -443,16 +443,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
                         <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>{trendingQuestionsTitle}</h3>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => fetchTrendingQuestions(true)}
-                        disabled={loadingTrendingQuestions}
-                        className="flex items-center gap-1 text-xs"
-                      >
-                        <RefreshCw className={`h-3.5 w-3.5 ${loadingTrendingQuestions ? 'animate-spin' : ''}`} />
-                        Actualiser
-                      </Button>
                     </div>
                     <div className="p-3">
                       {trendingQuestionsData.length > 0 ? (
@@ -534,16 +524,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       <TrendingUp className={`h-5 w-5 text-[${themeColors.primary}]`} />
                       <h3 className={`font-medium text-[${themeColors.primary}] text-sm`}>{trendingQuestionsTitle}</h3>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => fetchTrendingQuestions(true)}
-                      disabled={loadingTrendingQuestions}
-                      className="flex items-center gap-1 text-xs"
-                    >
-                      <RefreshCw className={`h-3.5 w-3.5 ${loadingTrendingQuestions ? 'animate-spin' : ''}`} />
-                      Actualiser
-                    </Button>
                   </div>
                   <div className="p-3">
                     {trendingQuestionsData.length > 0 ? (
