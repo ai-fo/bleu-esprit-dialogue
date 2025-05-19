@@ -26,13 +26,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onFirstMessage,
   trendingQuestions: initialTrendingQuestions = ["Problème avec Artis", "SAS est très lent aujourd'hui", "Impossible d'accéder à mon compte"],
   theme = 'user',
-  trendingQuestionsTitle = "Questions tendance aujourd'hui",
+  trendingQuestionsTitle = "Questions les plus posées par les utilisateurs aujourd'hui",
   source = 'user'  // Par défaut, la source est 'user'
 }) => {
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showTrendingQuestions, setShowTrendingQuestions] = useState(false);
+  const [showTrendingQuestions, setShowTrendingQuestions] = useState(true);  // Modifié pour afficher par défaut
   const [loadingMessage, setLoadingMessage] = useState<ChatMessageProps | null>(null);
   const [trendingQuestions, setTrendingQuestions] = useState<string[]>(initialTrendingQuestions);
   const [loadingTrendingQuestions, setLoadingTrendingQuestions] = useState(false);
@@ -245,7 +245,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         // Afficher chaque partie du message comme un message distinct
         const messageParts = response.message_parts;
         
-        // On ajoute chaque partie comme un message séparé avec un délai entre chaque
+        // On ajoute chaque partie du message comme un message séparé avec un délai entre chaque
         const addMessageWithDelay = async (index: number) => {
           if (index >= messageParts.length) return;
           
