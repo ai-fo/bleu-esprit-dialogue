@@ -46,3 +46,6 @@ MISTRAL_PATH = "/home/llama/models/base_models/Mistral-Small-3.1-24B-Instruct-25
 # Configuration du modèle pour le découpage des messages
 MINISTRAL_URL = "http://localhost:8787/v1/chat/completions"  # Port pour Ministral
 MINISTRAL_PATH = "/home/llama/models/base_models/Ministral-8B-Instruct-2410"  # Modèle Ministral
+
+
+#
