@@ -484,7 +484,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <div className="mb-8">
               <img 
                 ref={initialLogoRef}
-                src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
+                src="/images-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
                 alt="Hotline Assistant Logo" 
                 className="w-32 h-32 object-contain transition-transform duration-200 ease-out" 
               />

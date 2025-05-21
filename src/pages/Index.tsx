@@ -124,7 +124,7 @@ const Index = () => {
                   ref={logoRef} 
                   alt="Oskour Logo" 
                   className="w-full h-full object-contain transition-transform duration-200 ease-out" 
-                  src="/lovable-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
+                  src="/images-uploads/fb0ab2b3-5c02-4037-857a-19b40f122960.png" 
                 />
               </div>
             )}

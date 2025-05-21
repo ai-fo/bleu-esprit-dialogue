@@ -80,6 +80,6 @@ if __name__ == '__main__':
     host = '0.0.0.0'  # Accessible depuis n'importe quelle adresse IP
     port = 8077       # Port standard pour Flask
     
-    print(f"Démarrage du serveur sur http://localhost:{port}")
+    print(f"Démarrage du serveur sur {port}")
     print(f"Servir les PDFs depuis: {PDF_FOLDER}")
     app.run(host=host, port=port, debug=True) 
