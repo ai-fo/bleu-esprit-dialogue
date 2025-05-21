@@ -8,7 +8,7 @@ import httpx
 import time
 import random
 import traceback
-from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, MINISTRAL_PATH, MINISTRAL_URL, TRANSCRIPTS_DIR, TRANSCRIPTS_ADMIN_DIR
+from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, MINISTRAL_PATH, MINISTRAL_URL, TRANSCRIPTS_DIR, TRANSCRIPTS_ADMIN_DIR, PDF_ADMINS_FOLDER
 
 # Import fonctions du module rag
 from rag import (
