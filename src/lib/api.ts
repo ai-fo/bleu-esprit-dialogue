@@ -6,7 +6,10 @@ import { toast } from "sonner";
 export const SESSION_ID = uuidv4();
 
 // URL de base du backend
-const BASE_URL = 'http://servicedeskbot.lefoyer.lu:8081/';
+const BASE_URL = 'http://servicedeskbot.lefoyer.lu:8091';
+
+// URL de base du backend 
+// const BASE_URL = 'http://localhost:8091';
 
 // Interface pour les questions tendances
 export interface TrendingQuestion {

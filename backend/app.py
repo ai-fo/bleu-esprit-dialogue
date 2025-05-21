@@ -8,7 +8,7 @@ import httpx
 import time
 import random
 import traceback
-from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, MINISTRAL_PATH, MINISTRAL_URL, TRANSCRIPTS_DIR, TRANSCRIPTS_ADMIN_DIR, PDF_ADMINS_FOLDER
+from config import DEFAULT_MODE, MISTRAL_PATH, PDF_FOLDER, MINISTRAL_PATH, MINISTRAL_URL, TRANSCRIPTS_DIR, TRANSCRIPTS_ADMIN_DIR, PDF_ADMINS_FOLDER, PDF_SERVER_URL
 
 # Import fonctions du module rag
 from rag import (
@@ -275,7 +275,7 @@ def chat_endpoint(req: ChatRequest):
         pdf_server_available = False
         try:
             with httpx.Client(timeout=2.0) as client:
-                response = client.get("http://localhost:8077/")
+                response = client.get(PDF_SERVER_URL)
                 pdf_server_available = response.status_code == 200
         except Exception as e:
             logger.warning(f"Serveur PDF non disponible: {e}")
@@ -290,10 +290,10 @@ def chat_endpoint(req: ChatRequest):
                 # Choisir le bon dossier selon la source
                 if req.source == "admin":
                     pdf_file_path = PDF_ADMINS_FOLDER / filename
-                    pdf_link = f"http://localhost:8077/pdf_admin/{filename}"
+                    pdf_link = f"{PDF_SERVER_URL}/pdf_admin/{filename}"
                 else:
                     pdf_file_path = PDF_FOLDER / filename
-                    pdf_link = f"http://localhost:8077/pdf/{filename}"
+                    pdf_link = f"{PDF_SERVER_URL}/pdf/{filename}"
                 if not pdf_file_path.exists():
                     logger.warning(f"Fichier PDF non trouvé: {pdf_file_path}")
                     continue
