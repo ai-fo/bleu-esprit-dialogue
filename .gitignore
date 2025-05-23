@@ -29,7 +29,9 @@ backend/mon_env/
 backend/env/
 backend/transcript_admin/
 backend/pdfs_admins/
-backend/transcript_admin
-backend/pdfs
-backend/transcripts_text_only
-
+backend/transcript_admin/
+backend/pdfs/
+backend/transcripts_text_only/
+backend/.cursor/
+backend/cache/
+backend/transcripts/
