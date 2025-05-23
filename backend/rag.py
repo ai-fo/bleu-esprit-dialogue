@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 # Initialisation conditionnelle du reranker
 if DEFAULT_MODE == "local":
     try:
+        # Forcer l'utilisation du GPU 0 uniquement
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
         # Utiliser FlagReranker en mode local
         from FlagEmbedding import FlagReranker
         reranker = FlagReranker(
