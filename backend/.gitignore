@@ -1,5 +1,5 @@
 env/
-.cursorrules
+.cursor/rules
 pdfs/
 .windsurfrules/
 temp_images/
@@ -13,3 +13,4 @@ temp_images/
 .cursor/
 backend/*.pyc
 backend/__pycache__/
+lib/

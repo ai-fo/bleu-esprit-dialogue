@@ -35,3 +35,4 @@ backend/transcripts_text_only/
 backend/.cursor/
 backend/cache/
 backend/transcripts/
+backend/lib/
